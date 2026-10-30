@@ -173,7 +173,7 @@ The repo as a whole, checked as the notes reach Measured:
 
 ## Tasks
 
-- [ ] Shep: empty GitHub repo (private), named per D1
+- [x] Shep: empty GitHub repo (private), named per D1
 - [ ] Notes 002–005, one at a time, each agreed before its code
 
 ## Review
