@@ -1,6 +1,6 @@
 # 001 — Scope and plan
 
-**Status:** Draft · **Updated:** 2026-10-30
+**Status:** Agreed · **Updated:** 2026-10-30
 
 ## Proposal
 
@@ -181,3 +181,4 @@ The repo as a whole, checked as the notes reach Measured:
 | Date | Stage | Finding |
 |---|---|---|
 | 2026-10-30 | Draft | Written for review from the record (no overview exists for this repo). Checked while writing: RTS 6 Art. 15's text (legislation.gov.uk), its UK status (FCA review, August 2025; listed for revocation under FSMA 2023), Rule 15c3-5's adopting release, FIA's July 2024 paper; the feed handler's consumer and handler sink, the gateway's application rings and `order_venue`; both repos pin `lockfree-ipc` at `c733131` |
+| 2026-10-30 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 `tick-to-trade`; D2 quote following on a configured list; D3 RTS 6 Art. 15's entry checks and throttle, a permission list, 15c3-5's credit limit on open orders and fills, the kill switch; D4 one process, three threads, with one thread and a publisher consumer process measured beside it; D5 `order_venue` with a stamp; D6 journal C the headline, A beside; D7 fixed paces and the open, loopback and the card |
