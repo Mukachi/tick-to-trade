@@ -1,0 +1,124 @@
+# 002 — Book events and the strategy
+
+**Status:** Draft · **Updated:** 2026-10-30
+
+## Proposal
+
+Components 2 and 3 of note 001: what the strategy is told about the market, and what it does
+with it. The feed handler's handler reports every change to a sink it is given as a template
+argument (its note 003); the publisher is one such sink. This note adds a second: it watches the
+instruments the strategy trades and hands the strategy each change of their best prices, with
+whether the book can be trusted. The strategy is note 001's D2: quote following, one buy order
+per instrument resting at the best bid, moved when the bid moves, cancelled when the book cannot
+be trusted.
+
+It does:
+
+- a sink for the feed handler's handler, giving a **book event** for each change of a traded
+  instrument's best bid or ask, and a **state event** when the feed's state, an instrument's
+  soundness or its trading state changes;
+- the same events from the feed handler's publisher, for note 001's arrangement C (a consumer
+  process), so the strategy cannot tell the two apart;
+- the strategy: order **intents** (new, replace, cancel) out, the gateway's order events
+  (acknowledged, replaced, cancelled, rejected, filled) in;
+- a tool that ranks instruments by best-bid changes over the sample day, to choose the lists the
+  benchmarks trade.
+
+It does not:
+
+- check risk (note 003) or send anything (note 004): intents go to the risk checks;
+- trade on anything but the best bid: no signal, no sizing, nothing tuned (note 001);
+- touch the feed handler's code: the sink is a type of this repo, given to its handler.
+
+## Design
+
+**A book event is a state, not a change.** Each carries the instrument's whole top of book after
+the change (best bid and ask, price and shares), the ITCH sequence number and timestamp of the
+message that caused it, and the instrument's reliability. So a later event replaces an earlier
+one entirely: if events must be dropped, only the newest per instrument matters (D4).
+
+```mermaid
+flowchart LR
+  H[handler] -->|book, status, feed, directory| K[strategy sink]
+  K -->|book and state events| Q[ring: note 001 D4 A]
+  Q --> T[strategy]
+  T -->|intents| R[risk, note 003]
+  R --> G[gateway]
+  G -->|order events| T
+```
+
+**Which instruments.** The configuration names them by symbol; the sink learns each one's Stock
+Locate from the day's Stock Directory messages (the handler's `directory` call) and ignores every
+other locate with one table lookup.
+
+**The strategy, per instrument:** at most one order, and at most one request in flight for it.
+
+| State | On a usable event with a new best bid | On an unusable event | On an order event |
+|---|---|---|---|
+| no order | new: buy one round lot at the bid | nothing | — |
+| resting | replace to the new bid | cancel | filled: back to no order; cancelled: no order |
+| request in flight | remember the newest bid | remember to cancel | its answer settles the state; then act on what was remembered |
+
+An event is usable when the feed is `live`, the instrument's book is sound and its trading state
+is `T` (trading). A round lot is the directory's Round Lot Size for the instrument. Prices come
+from the book unchanged; the risk checks (note 003) decide whether they are acceptable.
+
+**Determinism.** The sink and the strategy read no clock and keep no state but what events and
+order events give them, so a recorded day gives the same intents whenever it is replayed, with
+the venue's answers in the same order (note 001's S3). Client order IDs come from a counter
+started at a configured value.
+
+**Decisions** (each with what is proposed):
+
+- **D1. The trigger.** *Proposed (A):* a change of the best bid's price; a change only of its
+  shares, or of the ask, sends no intent (the ask is carried for the risk checks' collar).
+  *Alternative (B):* any change of the top of book: several times the intents for the same
+  instruments.
+- **D2. Moving an order.** *Proposed (A):* OrderCancelReplaceRequest (one message, the order keeps
+  its place in the gateway's order state machine). *Alternative (B):* cancel, then a new order
+  once the cancel is acknowledged: two messages and a round trip without an order.
+- **D3. The sink in the handler.** *Proposed (A):* a sink of this repo given to the handler in
+  place of the publisher (arrangements A and B of note 001's D4), and an adapter turning the
+  publisher's level updates into the same events (arrangement C). *Alternative (B):* a sink that
+  forwards every call to the publisher as well: the program could publish to other consumers at
+  once, at the publisher's cost on the feed thread.
+- **D4. A full ring (arrangement A).** *Proposed (A):* the feed thread never waits: if the ring to
+  the strategy is full, it keeps the newest event of each instrument aside, pushes them when
+  there is room, and counts each event replaced (the feed handler lost the feed when its
+  receiving thread waited on a full ring: its note 007). *Alternative (B):* the feed thread
+  waits: simpler, and the feed is lost under a slow strategy.
+- **D5. The instrument lists for the benchmarks.** *Proposed (A):* from the tool's ranking over
+  the sample day, the 1, 10 and 100 instruments with the most best-bid changes over the open
+  (09:29:30 for five minutes), so the order rate rises by list, recorded in each run.
+  *Alternative (B):* a list chosen by hand.
+
+## Spec
+
+- S1. Over the sample day, the book events for a list of instruments equal those derived from the
+  feed handler's reference book after every message (best bid and ask, sequence, reliability),
+  through the sink and through the publisher's adapter alike.
+- S2. The strategy follows the table above: tested state by state with built events and order
+  events, and over the sample day against a reference strategy written for clarity on the
+  reference book; the intents are equal.
+- S3. No new or replace intent from an unusable event; an unusable event cancels the resting
+  order (or the request in flight, once answered).
+- S4. With a full ring the feed thread never waits; the strategy's last event for each instrument
+  is the newest, and each replaced event is counted.
+- S5. The sink, the adapter and the strategy allocate nothing in steady state and make no system
+  call (the compiled call graph checked).
+- S6. The sink's cost on the feed thread is measured beside the handler with the publisher and
+  with no sink, over the sample day, and published via `run.py report`.
+
+## Tasks
+
+- [ ] The sink, the adapter and the events (D1, D3)
+- [ ] The strategy (D2) and the reference strategy
+- [ ] The ring with D4's newest-aside rule
+- [ ] The ranking tool and the lists (D5)
+- [ ] Tests S1–S5; the benchmark (S6)
+
+## Review
+
+| Date | Stage | Finding |
+|---|---|---|
+| 2026-10-30 | Draft | Written for review. Checked: the handler calls `book(applied)`, `status`, `directory`, `feed` and the trade calls on its sink, so a sink of this repo replaces the publisher without changing the feed handler; the publisher's level updates carry the best bid and ask after each change, so arrangement C can give the same events |
