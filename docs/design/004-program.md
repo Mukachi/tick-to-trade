@@ -1,6 +1,6 @@
 # 004 — The program
 
-**Status:** Draft · **Updated:** 2026-10-31
+**Status:** Agreed · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -179,3 +179,4 @@ it.
 | Date | Stage | Finding |
 |---|---|---|
 | 2026-10-31 | Draft | Written for review. Read while writing: the gateway's engine, pipeline, order book and `order_venue` (fix-order-gateway at e737703); the feed handler's `itchfh` and recovery (its note 011). Found: the direct engine publishes the connection, not the session (D3); the gateway's order tables never free an entry and are sized below a day (capacities); note 001's S3 cannot hold against a live venue (D7) |
+| 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 FIX bodies from templates; D2 answers from the message and the order event; D3 `logged_on()` in the gateway; D4 the feed handler's recovery takes its sink as a parameter; D5 a control block and `ttt-ctl`; D6 a new session each run; D7 note 001's S3 amended; D8 kill, answers awaited, logout |
