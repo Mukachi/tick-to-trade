@@ -29,7 +29,7 @@ enable_testing()
 include(FetchContent)
 set(TTT_LFIPC_COMMIT c733131c95198f08cc9032b7ae105cfaf6f7cd88)
 set(TTT_ITCHFH_COMMIT d41cae33b763c5a1a6c481926570b841bb9618c2)
-set(TTT_FIXGW_COMMIT 2bc4e404134157b7e986cb30685c0ae1c908928f)
+set(TTT_FIXGW_COMMIT aa4d2e0bdfd03d120791c6d043fba90c3982ad2e)
 FetchContent_Declare(lockfree_ipc
   GIT_REPOSITORY https://github.com/Mukachi/lockfree-ipc.git
   GIT_TAG ${TTT_LFIPC_COMMIT}
@@ -105,7 +105,8 @@ add_custom_target(build_info ALL
 
 add_library(deps INTERFACE)
 target_include_directories(deps SYSTEM INTERFACE ${lockfree_ipc_SOURCE_DIR}/include ${itch_feed_handler_SOURCE_DIR}/include
-                                                 ${fix_order_gateway_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/generated)
+                                                 ${fix_order_gateway_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/generated
+                                                 ${itch_feed_handler_SOURCE_DIR}/bench)  # its stamps.hpp (note 005)
 target_compile_definitions(deps INTERFACE TTT_LFIPC_COMMIT="${TTT_LFIPC_COMMIT}" TTT_ITCHFH_COMMIT="${TTT_ITCHFH_COMMIT}"
                                           TTT_FIXGW_COMMIT="${TTT_FIXGW_COMMIT}")
 add_dependencies(deps build_info fix44_dictionary)
@@ -212,3 +213,12 @@ target_compile_definitions(program_s2_test PRIVATE TTT_DATA_DIR="${TTT_DATA_DIR}
 add_dependencies(program_s2_test feed_sender order_venue ttt_program ttt-ctl)
 add_test(NAME program_s2_test COMMAND program_s2_test)
 set_tests_properties(program_s2_test PROPERTIES LABELS data TIMEOUT 3600)
+
+# Tick to trade (note 005): writes into results/ only in bench mode.
+add_executable(t2t_bench bench/t2t_bench.cpp)
+target_link_libraries(t2t_bench PRIVATE ttt)
+target_include_directories(t2t_bench PRIVATE tests)
+target_compile_definitions(t2t_bench PRIVATE LFIPC_RESULTS_DIR="${CMAKE_SOURCE_DIR}/results" TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config"
+  TTT_BUILD_DIR="${CMAKE_BINARY_DIR}" TTT_VENUE="$<TARGET_FILE:order_venue>" TTT_ITCHFH="$<TARGET_FILE:itchfh_program>"
+  TTT_PROGRAM="$<TARGET_FILE:ttt_program>")
+add_dependencies(t2t_bench order_venue itchfh_program ttt_program)

@@ -117,8 +117,8 @@ and the venue in the card's far namespace first (the feed handler's `tools/card-
 
 ## Tasks
 
-- [ ] The gateway: `order_venue`'s stamp list; re-pinned here
-- [ ] The program: t1 in the book event, t2 and the list (configured `stamps`), the stamp read
+- [x] The gateway: `order_venue`'s stamp list; re-pinned here
+- [x] The program: t1 in the book event, t2 and the list (configured `stamps`), the stamp read
 - [ ] `t2t_bench`: the points, the join, the run file; the measurement's cost
 - [ ] `run.py`: the t2t set and its tables, the README block
 - [ ] Shep: three runs a path; publish; review
@@ -129,3 +129,4 @@ and the venue in the card's far namespace first (the feed handler's `tools/card-
 |---|---|---|
 | 2026-10-31 | Draft | Written for review. Read while writing: the feed handler's note 010 (stamps, open loop, the open's window) and `stamps.hpp` (4 million entries, so read live); its `tools/card-link` (multicast over the card, namespace `itchfh-peer`); `order_venue`'s turnaround stamp. Found: orders caused by an answer have no tick (D1); the program's clock must be `CLOCK_MONOTONIC`, not a converted TSC (D2) |
 | 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 D and G caused by a book event timed, answer-caused counted apart; D2 `CLOCK_MONOTONIC` stage stamps; D3 the headline on both paths at three paces and the open, the alternatives at 25k and the open on loopback; D4 journal A on the pipeline; D5 T3 decided by the first bench-mode runs; D6 the report |
+| 2026-10-31 | Agreed (building) | Built so far: `order_venue`'s stamps (fix-order-gateway aa4d2e0, CI green, pinned); t1 in the book event (stamped by the sink, or the adapter in C, when `stamps` is configured; left out of equality), the trader's trace (t0 read from the sender's array at send, t1, t2; answer-caused orders sequence 0), `stamps`/`trace` keys; S4's check allows `clock_gettime` (the vDSO); `t2t_bench` and `run.py`'s t2t set (dry-run on a trial). Found: (1) the journal's send record carries the engine's pass time, which can start before the order reaches the ring (trial: t2 to t3 p50 -855 ns), so it cannot split t2 to t4: the stages are three (feed, strategy and risk, gateway and venue); the journal still checks each timed order was sent. (2) The open cannot be run as D3 says: the sender's own-pace mode starts at 09:29:30 (message 13,406,693), and the program then has no Stock Directory, so no instruments and no orders; joining from a snapshot is not open to C (the publisher is muted while a snapshot is applied, so the adapter never learns the locates: T1). For Shep. Trial (loopback, 10k, 5 million messages, not bench mode): 111,778 orders timed, 21% of orders caused by an answer, tick to trade p50 27.9 µs (feed 9.1, strategy and risk 0.4, gateway and venue 19.9); a clock read 38 ns, a stamp read 42 ns, the timer pair alone 18 |

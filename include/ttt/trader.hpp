@@ -8,6 +8,9 @@
 // (D8): the kill switch engaged, then quiet() once every order is answered.
 // No allocation and no system call on any of it (S4): the order ring full is
 // waited on, never dropped (the risk has already counted the request).
+// Note 005's stamps, if configured: each D and G passed listed with its
+// message's sequence, t0 (the sender's intended time, read from its array now:
+// it wraps), t1 (the event's) and t2 (now), in a list allocated at start.
 // Design: docs/design/004-program.md
 #pragma once
 
@@ -18,10 +21,13 @@
 
 #include <fixgw/engine.hpp>
 
+#include "stamps.hpp"  // the feed handler's bench/: the sender's intended send times
+
 #include <lfipc/bench/clock.hpp>
 
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <memory>
 #include <span>
 
@@ -43,10 +49,26 @@ public:
     // A book event (the ring's, the sink's or the adapter's).
     void push(const book_event& e) {
         ++v_[mon::events];
+        made_ns_ = e.made_ns;
         risk_.on(e);
         strat_.on(e);
         settle();
+        made_ns_ = 0;
     }
+
+    // Note 005: one order traced.
+    struct traced {
+        std::uint64_t id, sequence;  // sequence 0: caused by an answer
+        std::int64_t t0, t1, t2;
+        char type;
+    };
+    void trace(const itchfh::bench::stamp_array* stamps, std::size_t capacity) {
+        stamps_ = stamps;
+        traced_ = std::make_unique<traced[]>(capacity);
+        traced_capacity_ = capacity;
+    }
+    std::span<const traced> traces() const { return {traced_.get(), traced_n_}; }
+    std::uint64_t traces_lost() const { return traces_lost_; }
     void flush() {}
 
     // Each pass of the thread: the gateway's answers, its session's state,
@@ -168,6 +190,16 @@ private:
         s.type[0] = m.type[0];
         std::memcpy(s.data, m.body, m.length);
         while (!to_.try_push(s)) ++v_[mon::app_ring_full];
+        if (stamps_ && i.kind != intent::cancel) {
+            if (traced_n_ < traced_capacity_) {
+                timespec t;
+                ::clock_gettime(CLOCK_MONOTONIC, &t);
+                traced_[traced_n_++] = {i.id, i.sequence, i.sequence ? stamps_->get(i.sequence) : 0, i.sequence ? made_ns_ : 0,
+                                        t.tv_sec * 1'000'000'000LL + t.tv_nsec, m.type[0]};
+            } else {
+                ++traces_lost_;
+            }
+        }
         if (passed_n_ < passed_capacity_) passed_[passed_n_++] = i.id;
         else ++passed_lost_;
     }
@@ -200,6 +232,11 @@ private:
     std::uint64_t passed_lost_ = 0, taken_ = 0;
     bool logged_on_ = false, stopping_ = false;
     char why_[64] = {};
+    std::int64_t made_ns_ = 0;
+    const itchfh::bench::stamp_array* stamps_ = nullptr;
+    std::unique_ptr<traced[]> traced_;
+    std::size_t traced_n_ = 0, traced_capacity_ = 0;
+    std::uint64_t traces_lost_ = 0;
     std::size_t why_length_ = 0;
     mon::values v_{};
 };

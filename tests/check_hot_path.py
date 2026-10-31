@@ -22,7 +22,8 @@ SUBJECTS = ["ttt_feed_message", "ttt_feed_state", "ttt_feed_tick", "ttt_adapter_
             "ttt_risk_kill", "ttt_trader_event", "ttt_trader_pass"]
 # __memcpy_chk and the like: with a bounds check (_FORTIFY_SOURCE, Ubuntu's default).
 MEMORY = {"memcpy@plt", "__memcpy_chk@plt", "memmove@plt", "__memmove_chk@plt", "memcmp@plt", "__stack_chk_fail@plt",
-          "memset@plt", "__memset_chk@plt", "memchr@plt"}
+          "memset@plt", "__memset_chk@plt", "memchr@plt",
+          "clock_gettime@plt"}  # note 005's stamps (D2): the vDSO, no system call with the TSC clocksource
 
 failures = 0
 

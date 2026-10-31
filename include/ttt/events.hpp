@@ -35,13 +35,16 @@ struct alignas(64) book_event {
     std::uint16_t slot = 0;      // the instrument's place in the configured list
     std::uint8_t reliability = 0;  // the feed handler's (its note 008, D4)
     char trading_state = 0;        // H P Q T; 0 before the day's first Stock Trading Action
+    std::int64_t made_ns = 0;      // note 005's t1: when the sink made it (CLOCK_MONOTONIC), if stamping; not part of equality
 
     // The state alone, without what caused it: equal states send no event.
     bool same_state(const book_event& o) const {
         return bid_price == o.bid_price && ask_price == o.ask_price && bid_shares == o.bid_shares && ask_shares == o.ask_shares &&
                reliability == o.reliability && trading_state == o.trading_state && round_lot == o.round_lot;
     }
-    bool operator==(const book_event&) const = default;
+    bool operator==(const book_event& o) const {
+        return sequence == o.sequence && timestamp_ns == o.timestamp_ns && locate == o.locate && slot == o.slot && same_state(o);
+    }
 };
 static_assert(sizeof(book_event) == 64 && std::is_trivially_copyable_v<book_event>);
 

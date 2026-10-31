@@ -110,6 +110,15 @@ int trade(const ttt::program_config& c, Engine& gw, fx::app_ring& to_gw, fx::app
           const ttt::limits& lim, double tpn, ttt::mon::block& b) {
     using trader_t = ttt::trader<Engine>;
     auto t = std::make_unique<trader_t>(ins, lim, gw, to_gw, from_gw, tpn, std::size_t{64} << 20, c.arrangement);
+    if (!c.stamps.empty()) {
+        std::string w;
+        const itchfh::bench::stamp_array* st = itchfh::bench::open_stamps(c.stamps, false, w);
+        if (!st) {
+            std::fprintf(stderr, "ttt: stamps: %s\n", w.c_str());
+            return 1;
+        }
+        t->trace(st, c.trace_capacity);
+    }
     shared sh;
     bool quiet = false, ok = false;
     fh::mon::block feed_mon;
@@ -140,6 +149,7 @@ int trade(const ttt::program_config& c, Engine& gw, fx::app_ring& to_gw, fx::app
             return false;
         }
         auto sk = std::make_unique<sink_t>(ins, out);
+        sk->stamp(!c.stamps.empty());
         auto rcv = std::make_unique<fh::recovery<fh::default_book, sink_t>>(*sk, bc, fh::handler_config{}, recovery_of(c.feed_config));
         fh::feed_one<fh::published_on<fh::default_book, sink_t>> f(rx, rcv->active(), qc, c.feed_config.batch);
         rcv->begin(f);
@@ -217,6 +227,7 @@ int trade(const ttt::program_config& c, Engine& gw, fx::app_ring& to_gw, fx::app
         }
         con.report_node();
         ttt::adapter<trader_t> ad(ins, *t);
+        ad.stamp(!c.stamps.empty());
         const auto read = [&](std::uint16_t l, fh::pub::entry_view& v) { return con.read(l, v); };
         bool live = false;
         fh::pub::update u;
@@ -262,6 +273,11 @@ int trade(const ttt::program_config& c, Engine& gw, fx::app_ring& to_gw, fx::app
                 quiet ? "every order answered" : "ORDERS LEFT UNANSWERED", gw.finished() ? "logged out" : "NOT LOGGED OUT");
     if (t->counters()[ttt::mon::gateway_refused])
         std::printf("ttt: the gateway's last refusal: %.*s\n", static_cast<int>(t->last_gateway_refusal().size()), t->last_gateway_refusal().data());
+    if (!c.trace.empty()) {
+        std::ofstream f(c.trace);
+        for (const auto& x : t->traces()) f << x.id << ' ' << x.type << ' ' << x.sequence << ' ' << x.t0 << ' ' << x.t1 << ' ' << x.t2 << '\n';
+        if (t->traces_lost()) f << "lost " << t->traces_lost() << '\n';
+    }
     if (!c.passed_log.empty()) {
         std::ofstream f(c.passed_log);
         for (const std::uint64_t id : t->passed()) f << id << '\n';

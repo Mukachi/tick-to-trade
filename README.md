@@ -12,6 +12,10 @@ from EU RTS 6 Article 15 and SEC Rule 15c3-5, and
 Figures are generated from committed runs by `python run.py report`; every run states its machine and
 conditions in [RESULTS.md](RESULTS.md).
 
+<!-- results:t2t-summary -->
+Tick to trade: not yet measured (design note 005).
+<!-- /results -->
+
 <!-- results:sink-summary -->
 | Case | M messages/s | p50 | p99 | p99.9 | max | Book events |
 |---|---|---|---|---|---|---|

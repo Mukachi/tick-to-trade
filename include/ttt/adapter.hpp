@@ -25,6 +25,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <vector>
 
 namespace ttt {
@@ -91,6 +92,9 @@ public:
         }
     }
 
+    // Note 005: each event stamped when made (t1), for the measurement only.
+    void stamp(bool on) { stamping_ = on; }
+
     // The consumer is live after a join: `read(locate, entry_view&)` gives the state table's entry.
     template <class Read>
     void joined(Read&& read) {
@@ -116,11 +120,17 @@ private:
     void send(std::uint16_t s) {
         if (joining_ || state_[s].same_state(last_[s])) return;
         last_[s] = state_[s];
+        if (stamping_) {
+            timespec t;
+            ::clock_gettime(CLOCK_MONOTONIC, &t);
+            state_[s].made_ns = t.tv_sec * 1'000'000'000LL + t.tv_nsec;
+        }
         out_.push(state_[s]);
     }
 
     instruments& ins_;
     Out& out_;
+    bool stamping_ = false;
     std::vector<book_event> state_, last_;
     bool joining_ = false;
 };

@@ -20,6 +20,7 @@
 #include <itchfh/publication.hpp>
 
 #include <cstdint>
+#include <ctime>
 
 namespace ttt {
 
@@ -31,6 +32,8 @@ public:
     sink(instruments& i, Out& out) : book_(nullptr), ins_(i), out_(out), last_(i.size()), round_lot_(i.size(), 0) {}
 
     void rebind(const Book& b) { book_ = &b; }
+    // Note 005: each event stamped when made (t1), for the measurement only.
+    void stamp(bool on) { stamping_ = on; }
     template <class H>
     void watch(const H& h) {
         status_ = &h.statuses();
@@ -92,6 +95,7 @@ private:
         e.timestamp_ns = ts_;
         e.locate = l;
         e.slot = s;
+        if (stamping_) e.made_ns = mono_ns();
         last_[s] = e;
         out_.push(e);
     }
@@ -105,6 +109,12 @@ private:
     itchfh::feed_state feed_ = itchfh::feed_state::waiting;
     std::uint64_t seq_ = 0, ts_ = 0;
     bool muted_ = false;
+    bool stamping_ = false;
+    static std::int64_t mono_ns() {
+        timespec t;
+        ::clock_gettime(CLOCK_MONOTONIC, &t);  // the vDSO: no system call (TSC clocksource)
+        return t.tv_sec * 1'000'000'000LL + t.tv_nsec;
+    }
 };
 
 // The handler with the strategy's sink: what feed_one runs in arrangements A and B.

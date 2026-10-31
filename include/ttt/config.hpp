@@ -37,6 +37,9 @@ struct program_config {
     std::string block = "/ttt";             // control and monitoring
     std::string passed_log;                 // S1: the IDs the risk passed, written at exit (empty: not)
     std::uint64_t end_wait_ms = 5000;       // D8
+    // Note 005: the sender's stamp array (empty: no stamping), where the traced orders go, how many.
+    std::string stamps, trace;
+    std::uint64_t trace_capacity = 8'000'000;
     itchfh::program_config feed_config;     // read from `feed`
 };
 
@@ -111,6 +114,15 @@ inline bool parse_program(const std::string& text, const std::filesystem::path& 
             c.block = v;
         } else if (k == "passed_log") {
             c.passed_log = v == "none" ? std::string{} : path(v);
+        } else if (k == "stamps") {
+            if (v == "none") c.stamps.clear();
+            else if (v.size() < 2 || v[0] != '/' || v.find('/', 1) != std::string::npos) return bad("stamps: a shared-memory name (/name) or none");
+            else c.stamps = v;
+        } else if (k == "trace") {
+            c.trace = v == "none" ? std::string{} : path(v);
+        } else if (k == "trace_capacity") {
+            if (!number(1, 1'000'000'000)) return bad("trace_capacity: 1 to 10^9");
+            c.trace_capacity = x;
         } else if (k == "end_wait_ms") {
             if (!number(0, 600'000)) return bad("end_wait_ms: 0 to 600000");
             c.end_wait_ms = x;
@@ -120,6 +132,10 @@ inline bool parse_program(const std::string& text, const std::filesystem::path& 
     }
     if (c.feed.empty()) {
         why = "feed: the feed handler's configuration file is required";
+        return false;
+    }
+    if (c.stamps.empty() != c.trace.empty()) {
+        why = "stamps and trace: both or neither (note 005)";
         return false;
     }
     if (!itchfh::load_config(c.feed, c.feed_config, why)) return false;
