@@ -1,6 +1,6 @@
 # 003 — Pre-trade risk
 
-**Status:** Draft · **Updated:** 2026-10-31
+**Status:** Agreed · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -149,3 +149,4 @@ from every order and fill kept (no running sums), so a sum kept wrong in the fas
 | Date | Stage | Finding |
 |---|---|---|
 | 2026-10-31 | Draft | Written for review. Checked: RTS 6 Articles 12, 15 and 16 on legislation.gov.uk (up to date to 30 October 2026; revocation by FSMA 2023 listed, not yet applied; EUR-Lex gave no text to compare); 17 CFR 240.15c3-5 (c) on Cornell LII (eCFR redirected). Art. 15(3) is not a rate limit: it disables the system after a number of executions until a designated person re-enables it (D4). 15c3-5 (c)(1)(ii) also asks for duplicative orders to be refused (the duplicate check). The gateway's order book already throttles messages if configured (its note 007, D4): D7 |
+| 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 market time for the windows; D2 a reference price a period (one minute, 10% band); D3 a replace in flight counted at both prices; D4 fills in a sliding window engage the kill switch; D5 instrument and firm exposure limits; D6 no override; D7 the gateway's throttle off |
