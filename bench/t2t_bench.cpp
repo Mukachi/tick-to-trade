@@ -16,8 +16,12 @@
 // Design: docs/design/005-measurement.md
 //
 // Usage: t2t_bench loopback|card [output.json] [--quick]
+//   --quick: a check run (not for results/): each point at 25k without the open, over 5 million messages
 //   loopback: build/feed_sender 127.0.0.1 239.192.0.1 26400 26401 5 0 data/<day> /ttt-stamps
-//   card:     inside itchfh-peer, the same at 10.99.0.2, and build/order_venue 26500 6 <points> <dir> stamps
+//   card:     inside itchfh-peer, the same at 10.99.0.2, and build/order_venue 26500 6 4 build/t2t-venue stamps
+// The open (D3, amended): the morning at 50,000 packets a second, then the
+// open (09:29:30 for five minutes) at the day's own pace; only orders caused
+// by the open's messages are timed.
 #include "programs.hpp"  // tests/
 
 #include <ttt/block.hpp>
@@ -61,8 +65,9 @@ std::int64_t mono() {
 struct point {
     const char* name;
     char arrangement, journal;
-    double pace;  // packets a second; 0: the open at the day's own pace
+    double pace;  // packets a second; 0: the open at the day's own pace, after the morning at 50k (D3, amended)
 };
+constexpr double lead_pace = 50'000;
 
 struct percentiles {
     std::size_t count = 0;
@@ -81,6 +86,7 @@ percentiles of(std::vector<std::int64_t>& v) {
 struct result {
     point pt;
     bool complete = false, s1 = false;
+    std::uint64_t first = 0, last = 0;  // the messages timed
     std::uint64_t orders = 0, by_event = 0, by_answer = 0, unjoined = 0, kernel_drops = ~0ull, stage_mismatch = 0;
     percentiles total, feed, strategy, gateway;  // t0-t4; t0-t1, t1-t2, t2-t4
     itchfh::sender_counts sent{};
@@ -96,7 +102,8 @@ std::uint64_t number_before(const std::string& text, const std::string& suffix) 
 }
 
 // The long form of R (the feed handler's e2e_bench): answered with the first and last messages it resolves to.
-bool run_sender(sender_control& ctl, const char (&session)[11], double pace, double speed, std::uint64_t last, std::uint64_t from, std::uint64_t to) {
+bool run_sender(sender_control& ctl, const char (&session)[11], double pace, double speed, std::uint64_t last, std::uint64_t from, std::uint64_t to,
+                std::uint64_t (&span)[2]) {
     unsigned char b[59];
     const double drop = 0;
     b[0] = 'R';
@@ -108,7 +115,6 @@ bool run_sender(sender_control& ctl, const char (&session)[11], double pace, dou
     std::memcpy(b + 43, &from, 8);
     std::memcpy(b + 51, &to, 8);
     ::sendto(ctl.fd, b, sizeof(b), 0, reinterpret_cast<const sockaddr*>(&ctl.to), sizeof(ctl.to));
-    std::uint64_t span[2];
     return ::recv(ctl.fd, span, sizeof(span), 0) == static_cast<ssize_t>(sizeof(span));
 }
 
@@ -179,12 +185,21 @@ int main(int argc, char** argv) {
     points.push_back({"A, journal C, 10k", 'A', 'C', 10'000});
     points.push_back({"A, journal C, 25k", 'A', 'C', 25'000});
     points.push_back({"A, journal C, 50k", 'A', 'C', 50'000});
+    points.push_back({"A, journal C, the open", 'A', 'C', 0});
     if (!card) {
         points.push_back({"B, journal C, 25k", 'B', 'C', 25'000});
+        points.push_back({"B, journal C, the open", 'B', 'C', 0});
         points.push_back({"C, journal C, 25k", 'C', 'C', 25'000});
+        points.push_back({"C, journal C, the open", 'C', 'C', 0});
         points.push_back({"A, journal A, 25k", 'A', 'A', 25'000});
+        points.push_back({"A, journal A, the open", 'A', 'A', 0});
     }
-    if (quick) points.resize(1);
+    if (quick) {  // a check run: every arrangement and journal over 5 million messages, no open
+        std::vector<point> q;
+        for (const point& p : points)
+            if (p.pace != 0 && (p.pace == 25'000 || p.arrangement != 'A' || p.journal != 'C')) q.push_back(p);
+        points = q;
+    }
 
     const std::string tag = std::to_string(::getpid());
     const std::string dir = std::string(TTT_BUILD_DIR) + "/t2t-" + tag, venue_dir = card ? std::string(TTT_BUILD_DIR) + "/t2t-venue" : dir;
@@ -228,8 +243,10 @@ int main(int argc, char** argv) {
         session[8] = static_cast<char>('0' + k / 10);
         session[9] = static_cast<char>('0' + k % 10);
         const bool open = pt.pace == 0;
-        const bool driven = run_sender(ctl, session, open ? 0 : pt.pace, open ? 1 : 0, open ? 0 : (quick ? 5'000'000 : prefix), open ? open_from_ns : 0,
-                                       open ? open_to_ns : 0);
+        std::uint64_t span[2] = {0, 0};  // the messages whose orders are timed
+        const bool driven = run_sender(ctl, session, open ? lead_pace : pt.pace, open ? 1 : 0, open ? 0 : (quick ? 5'000'000 : prefix),
+                                       open ? open_from_ns : 0, open ? open_to_ns : 0, span);
+        r.first = span[0], r.last = span[1];
         const int exit_code = wait_exit_for(program, 20 * 60 * 1000);
         const int itchfh_exit = itchfh > 0 ? wait_exit_for(itchfh, 60 * 1000) : 0;
         const int venue_exit = venue > 0 ? wait_exit_for(venue, 60 * 1000) : 0;
@@ -277,6 +294,7 @@ int main(int argc, char** argv) {
                     ++r.by_answer;
                     continue;
                 }
+                if (seq < r.first || seq > r.last) continue;  // the open's morning: not timed
                 ++r.by_event;
                 const auto a = t3.find(id), z = t4.find(id);
                 if (t0 <= 0 || t1 <= 0 || a == t3.end() || z == t4.end()) {
@@ -357,6 +375,8 @@ int main(int argc, char** argv) {
         run.w.member("arrangement", std::string(1, r.pt.arrangement));
         run.w.member("journal", std::string(1, r.pt.journal));
         run.w.member("pace", r.pt.pace);
+        run.w.member("first_message", r.first);
+        run.w.member("last_message", r.last);
         run.w.member("complete", r.complete);
         run.w.member("s1", r.s1);
         run.w.member("orders", r.orders);

@@ -28,7 +28,7 @@ enable_testing()
 # tests, benchmarks and baselines are not built here.
 include(FetchContent)
 set(TTT_LFIPC_COMMIT c733131c95198f08cc9032b7ae105cfaf6f7cd88)
-set(TTT_ITCHFH_COMMIT d41cae33b763c5a1a6c481926570b841bb9618c2)
+set(TTT_ITCHFH_COMMIT 36d7a92a6bcab383320697b8f072bf83bbfe4118)
 set(TTT_FIXGW_COMMIT aa4d2e0bdfd03d120791c6d043fba90c3982ad2e)
 FetchContent_Declare(lockfree_ipc
   GIT_REPOSITORY https://github.com/Mukachi/lockfree-ipc.git
