@@ -115,3 +115,16 @@ target_compile_definitions(sink_bench PRIVATE LFIPC_RESULTS_DIR="${CMAKE_SOURCE_
 # One number everywhere: a stale RESULTS.md or README figure fails the suite.
 add_test(NAME report_check COMMAND Python3::Interpreter -I ${CMAKE_SOURCE_DIR}/run.py report --check
                                   --lockfree-ipc ${lockfree_ipc_SOURCE_DIR})
+add_executable(risk_day_test tests/risk_day_test.cpp)
+target_link_libraries(risk_day_test PRIVATE ttt)
+target_include_directories(risk_day_test PRIVATE tools)
+target_compile_definitions(risk_day_test PRIVATE TTT_DATA_DIR="${TTT_DATA_DIR}" TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
+add_test(NAME risk_day_test COMMAND risk_day_test)
+set_tests_properties(risk_day_test PROPERTIES LABELS data TIMEOUT 14400)
+
+# The risk checks' benchmark (note 003, S7): writes into results/ only in bench mode.
+add_executable(risk_bench bench/risk_bench.cpp)
+target_link_libraries(risk_bench PRIVATE ttt)
+target_include_directories(risk_bench PRIVATE tools tests)
+target_compile_definitions(risk_bench PRIVATE LFIPC_RESULTS_DIR="${CMAKE_SOURCE_DIR}/results" TTT_DATA_DIR="${TTT_DATA_DIR}"
+                                              TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")

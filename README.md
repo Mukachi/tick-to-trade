@@ -23,3 +23,7 @@ conditions in [RESULTS.md](RESULTS.md).
 
 The sample day's first 50,000,000 messages through the feed handler's handler on one CPU, with no sink, its publisher, or the strategy's sink; ns a message, range over runs. The method: [RESULTS.md](RESULTS.md).
 <!-- /results -->
+
+<!-- results:risk-summary -->
+Pre-trade risk: not yet measured (design note 003).
+<!-- /results -->

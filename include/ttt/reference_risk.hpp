@@ -193,9 +193,10 @@ private:
         orders_.erase(*o);
         orders_[r.id] = moved;
     }
+    // Times are kept in order (market time never goes back): counted from the newest until one is outside the window.
     std::uint64_t in_window(const std::vector<std::uint64_t>& times, std::size_t from, std::uint64_t window) const {
         std::uint64_t n = 0;
-        for (std::size_t k = from; k < times.size(); ++k) n += times[k] + window > now_;
+        for (std::size_t k = times.size(); k > from && times[k - 1] + window > now_; --k) ++n;
         return n;
     }
     std::uint64_t fills_in_window() const { return in_window(fill_times_, fills_from_, lim_.fills_window_ns); }

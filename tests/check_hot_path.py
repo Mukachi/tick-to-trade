@@ -1,4 +1,4 @@
-"""S5 of note 002, checked in the compiled code, as the feed handler's and the gateway's checks.
+"""S5 of note 002 and S6 of note 003, checked in the compiled code, as the feed handler's and the gateway's checks.
 Design: docs/design/002-book-events-strategy.md
 
 Usage: check_hot_path.py <objdump> <hot_path_subject binary>
@@ -9,14 +9,16 @@ stack protector's abort, never through a pointer, and contains no syscall
 instruction. The subjects: the feed thread's work for a message (the feed
 handler's handler on the default book, the strategy's sink, the push into D4's
 ring), a change of the feed's state, its tick; the adapter's for an update;
-the strategy's for an event and for an answer; the strategy thread's pop.
+the strategy's for an event and for an answer; the strategy thread's pop; the
+risk checks' for an intent, an answer, a book event, a refusal taken, the kill.
 """
 import re
 import subprocess
 import sys
 
 SUBJECTS = ["ttt_feed_message", "ttt_feed_state", "ttt_feed_tick", "ttt_adapter_update", "ttt_strategy_event",
-            "ttt_strategy_answer", "ttt_ring_pop"]
+            "ttt_strategy_answer", "ttt_ring_pop", "ttt_risk_intent", "ttt_risk_answer", "ttt_risk_event", "ttt_risk_refusal",
+            "ttt_risk_kill"]
 # __memcpy_chk and the like: with a bounds check (_FORTIFY_SOURCE, Ubuntu's default).
 MEMORY = {"memcpy@plt", "__memcpy_chk@plt", "memmove@plt", "__memmove_chk@plt", "memcmp@plt", "__stack_chk_fail@plt",
           "memset@plt", "__memset_chk@plt"}
@@ -72,7 +74,7 @@ for subject in SUBJECTS:
             elif t in funcs and t != f:
                 todo.append(t)
     size = sum(len(funcs[f]) for f in seen)
-    check(not bad, f"S5 {subject}: {len(seen)} functions, {size} instructions, calls only memory functions and the stack protector"
+    check(not bad, f"{'S6 (note 003)' if subject.startswith('ttt_risk') else 'S5 (note 002)'} {subject}: {len(seen)} functions, {size} instructions, calls only memory functions and the stack protector"
                    + (f": found {bad[:5]}" if bad else ""))
 
 print("FAILED" if failures else "all passed")
