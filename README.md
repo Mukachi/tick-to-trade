@@ -13,5 +13,13 @@ Figures are generated from committed runs by `python run.py report`; every run s
 conditions in [RESULTS.md](RESULTS.md).
 
 <!-- results:sink-summary -->
-The strategy's sink: not yet measured (design note 002).
+| Case | M messages/s | p50 | p99 | p99.9 | max | Book events |
+|---|---|---|---|---|---|---|
+| no sink | 4.28–4.37 | 197–198 | 618–638 | 891–955 | 4.0–18.5 µs | – |
+| publisher (table only) | 3.14–3.18 | 267–269 | 751–771 | 1,050–1,097 | 4.0–17.6 µs | – |
+| sink, 1 instrument | 4.11–4.17 | 204–205 | 631–646 | 906–962 | 6,559–7,730 | 392,472 |
+| sink, 10 instruments | 4.04–4.10 | 207–208 | 637–653 | 914–966 | 3.8–17.9 µs | 1,722,283 |
+| sink, 100 instruments | 3.88–3.93 | 216–218 | 649–670 | 921–973 | 4.5–17.9 µs | 4,717,340 |
+
+The sample day's first 50,000,000 messages through the feed handler's handler on one CPU, with no sink, its publisher, or the strategy's sink; ns a message, range over runs. The method: [RESULTS.md](RESULTS.md).
 <!-- /results -->
