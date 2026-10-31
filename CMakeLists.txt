@@ -28,7 +28,8 @@ enable_testing()
 # tests, benchmarks and baselines are not built here.
 include(FetchContent)
 set(TTT_LFIPC_COMMIT c733131c95198f08cc9032b7ae105cfaf6f7cd88)
-set(TTT_ITCHFH_COMMIT a1a3d013ccf243b93ae763df2f99be3504af871d)
+set(TTT_ITCHFH_COMMIT d41cae33b763c5a1a6c481926570b841bb9618c2)
+set(TTT_FIXGW_COMMIT 2bc4e404134157b7e986cb30685c0ae1c908928f)
 FetchContent_Declare(lockfree_ipc
   GIT_REPOSITORY https://github.com/Mukachi/lockfree-ipc.git
   GIT_TAG ${TTT_LFIPC_COMMIT}
@@ -39,7 +40,12 @@ FetchContent_Declare(itch_feed_handler
   GIT_TAG ${TTT_ITCHFH_COMMIT}
   GIT_SHALLOW FALSE
   SOURCE_SUBDIR none)
-FetchContent_MakeAvailable(lockfree_ipc itch_feed_handler)
+FetchContent_Declare(fix_order_gateway
+  GIT_REPOSITORY https://github.com/Mukachi/fix-order-gateway.git
+  GIT_TAG ${TTT_FIXGW_COMMIT}
+  GIT_SHALLOW FALSE
+  SOURCE_SUBDIR none)
+FetchContent_MakeAvailable(lockfree_ipc itch_feed_handler fix_order_gateway)
 
 # One queue and one harness (note 001): the feed handler must pin the same
 # lockfree-ipc as this repo.
@@ -48,6 +54,42 @@ string(REGEX REPLACE "^set\\(ITCHFH_LFIPC_COMMIT ([0-9a-f]+)\\)$" "\\1" itchfh_p
 if(NOT itchfh_pin STREQUAL TTT_LFIPC_COMMIT)
   message(FATAL_ERROR "itch-feed-handler pins lockfree-ipc at '${itchfh_pin}', this repo at ${TTT_LFIPC_COMMIT}")
 endif()
+file(STRINGS ${fix_order_gateway_SOURCE_DIR}/CMakeLists.txt fixgw_pin REGEX "^set\\(FIXGW_LFIPC_COMMIT ")
+string(REGEX REPLACE "^set\\(FIXGW_LFIPC_COMMIT ([0-9a-f]+)\\)$" "\\1" fixgw_pin "${fixgw_pin}")
+if(NOT fixgw_pin STREQUAL TTT_LFIPC_COMMIT)
+  message(FATAL_ERROR "fix-order-gateway pins lockfree-ipc at '${fixgw_pin}', this repo at ${TTT_LFIPC_COMMIT}")
+endif()
+
+# The gateway's FIX 4.4 dictionary (its note 006), generated here as it is
+# there: its script, the FIX Trading Community's orchestrations at the commit
+# and hashes the gateway pins (checked against its CMakeLists), into build/.
+set(TTT_ORCHESTRA_COMMIT cd24169a2abd8daba7c360987c7a46ca11873a12)
+set(TTT_ORCHESTRA_FILES OrchestraFIX44.xml FIX44Session.xml)
+set(TTT_ORCHESTRA_SHA256 a36262895e90bbcad2948e0c98072173a571a253ba63107a89617441c67a9f86
+                         90232af493951c0d88447725712cb620056374e87cd019f4e26b11c51889e475)
+file(READ ${fix_order_gateway_SOURCE_DIR}/CMakeLists.txt fixgw_cmake)
+foreach(v ${TTT_ORCHESTRA_COMMIT} ${TTT_ORCHESTRA_SHA256})
+  string(FIND "${fixgw_cmake}" "${v}" at)
+  if(at EQUAL -1)
+    message(FATAL_ERROR "fix-order-gateway no longer pins the orchestrations at ${v}")
+  endif()
+endforeach()
+set(TTT_ORCHESTRA_DIR ${CMAKE_BINARY_DIR}/_deps/fix_orchestrations)
+foreach(name hash IN ZIP_LISTS TTT_ORCHESTRA_FILES TTT_ORCHESTRA_SHA256)
+  if(NOT EXISTS ${TTT_ORCHESTRA_DIR}/${name})
+    file(DOWNLOAD "https://raw.githubusercontent.com/FIXTradingCommunity/orchestrations/${TTT_ORCHESTRA_COMMIT}/FIX%20Standard/${name}"
+         ${TTT_ORCHESTRA_DIR}/${name} EXPECTED_HASH SHA256=${hash} TLS_VERIFY ON)
+  endif()
+endforeach()
+add_custom_command(
+  OUTPUT ${CMAKE_BINARY_DIR}/generated/fixgw/fix44_dictionary.hpp
+  COMMAND Python3::Interpreter -I ${fix_order_gateway_SOURCE_DIR}/tools/gen_dictionary.py
+          ${TTT_ORCHESTRA_DIR}/OrchestraFIX44.xml ${TTT_ORCHESTRA_DIR}/FIX44Session.xml
+          ${TTT_ORCHESTRA_COMMIT} ${CMAKE_BINARY_DIR}/generated/fixgw/fix44_dictionary.hpp
+  DEPENDS ${fix_order_gateway_SOURCE_DIR}/tools/gen_dictionary.py ${TTT_ORCHESTRA_DIR}/OrchestraFIX44.xml
+          ${TTT_ORCHESTRA_DIR}/FIX44Session.xml
+  COMMENT "Generating the gateway's FIX 4.4 dictionary")
+add_custom_target(fix44_dictionary DEPENDS ${CMAKE_BINARY_DIR}/generated/fixgw/fix44_dictionary.hpp)
 
 # Build provenance for this repository, written by lockfree-ipc's script into
 # lfipc/build_info.hpp, where its environment capture reads it (lockfree-ipc
@@ -63,9 +105,10 @@ add_custom_target(build_info ALL
 
 add_library(deps INTERFACE)
 target_include_directories(deps SYSTEM INTERFACE ${lockfree_ipc_SOURCE_DIR}/include ${itch_feed_handler_SOURCE_DIR}/include
-                                                 ${CMAKE_BINARY_DIR}/generated)
-target_compile_definitions(deps INTERFACE TTT_LFIPC_COMMIT="${TTT_LFIPC_COMMIT}" TTT_ITCHFH_COMMIT="${TTT_ITCHFH_COMMIT}")
-add_dependencies(deps build_info)
+                                                 ${fix_order_gateway_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/generated)
+target_compile_definitions(deps INTERFACE TTT_LFIPC_COMMIT="${TTT_LFIPC_COMMIT}" TTT_ITCHFH_COMMIT="${TTT_ITCHFH_COMMIT}"
+                                          TTT_FIXGW_COMMIT="${TTT_FIXGW_COMMIT}")
+add_dependencies(deps build_info fix44_dictionary)
 target_link_libraries(ttt INTERFACE deps Threads::Threads)
 
 # The sample day (note 001): not in the repo and never redistributed;
@@ -73,7 +116,7 @@ target_link_libraries(ttt INTERFACE deps Threads::Threads)
 set(TTT_DATA_DIR ${CMAKE_SOURCE_DIR}/data CACHE PATH "Where the sample day is")
 
 # Tests: plain executables under CTest. Each one added with its component.
-set(TTT_TESTS strategy_test ring_test sink_test risk_test)
+set(TTT_TESTS strategy_test ring_test sink_test risk_test orders_test)
 foreach(t ${TTT_TESTS})
   add_executable(${t} tests/${t}.cpp)
   target_link_libraries(${t} PRIVATE ttt)

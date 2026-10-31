@@ -77,7 +77,7 @@ as received and then the order's state after it (its note 007). D2 maps them:
 |---|---|
 | ExecutionReport ExecType New (0) | accepted, the report's ClOrdID |
 | ExecType Replaced (5) | replaced, the report's ClOrdID |
-| ExecType Canceled (4) | cancelled, by OrigClOrdID when it answers a cancel, else the ClOrdID (the venue's own) |
+| ExecType Canceled (4) | cancelled, the report's ClOrdID: the cancel's when it answers one, the order's when it is the venue's own |
 | ExecType Rejected (8) | rejected, the report's ClOrdID |
 | ExecType Trade (F) | filled if LeavesQty is 0, else partly filled; LastQty and LastPx (32, 31) with it |
 | OrderCancelReject (9) | rejected, its ClOrdID (the request's) |
@@ -166,9 +166,9 @@ it.
 
 ## Tasks
 
-- [ ] The feed handler: the recovery takes its sink as a parameter (D4); re-pinned here
-- [ ] The gateway: `logged_on()` on both engines (D3); fetched here at a pinned commit
-- [ ] Orders out (D1) and answers in (D2): `include/ttt/orders.hpp`; S5's test
+- [x] The feed handler: the recovery takes its sink as a parameter (D4); re-pinned here
+- [x] The gateway: `logged_on()` on both engines (D3); fetched here at a pinned commit
+- [x] Orders out (D1) and answers in (D2): `include/ttt/orders.hpp`; S5's test
 - [ ] The program `ttt`: configuration, arrangements A, B and C, the gateway's capacities, D6, D8
 - [ ] Control and monitoring: the blocks, `ttt-ctl`, `ttt-monitor` (D5)
 - [ ] `feed_sender` and `order_venue` built here from their pinned sources (into `build/`)
@@ -180,3 +180,4 @@ it.
 |---|---|---|
 | 2026-10-31 | Draft | Written for review. Read while writing: the gateway's engine, pipeline, order book and `order_venue` (fix-order-gateway at e737703); the feed handler's `itchfh` and recovery (its note 011). Found: the direct engine publishes the connection, not the session (D3); the gateway's order tables never free an entry and are sized below a day (capacities); note 001's S3 cannot hold against a live venue (D7) |
 | 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 FIX bodies from templates; D2 answers from the message and the order event; D3 `logged_on()` in the gateway; D4 the feed handler's recovery takes its sink as a parameter; D5 a control block and `ttt-ctl`; D6 a new session each run; D7 note 001's S3 amended; D8 kill, answers awaited, logout |
+| 2026-10-31 | Agreed (building) | Corrected while building: a cancel's report is read by its own ClOrdID (the cancel's), not OrigClOrdID: the strategy settles a cancel by the request's ID and takes the order's ID as the venue's own cancel (note 002). Read precisely: an ExecutionReport carries LeavesQty, LastQty and LastPx itself, so each report and OrderCancelReject is read from the message alone and the order event after it is passed over; only a refused or not-sent event is read (D2 otherwise as agreed). The gateway's session needs its generated FIX 4.4 dictionary: generated here with its script, from the orchestrations at the commit and hashes it pins (checked against its CMakeLists). Upstream: itch-feed-handler d41cae3 (D4), fix-order-gateway 2bc4e40 (D3), both pinned. `orders_test` (S5): every row of D2's table, through the direct engine over loopback to the venue simulator, the rest from built slots; TransactTime's form; ASan/UBSan and TSan clean |
