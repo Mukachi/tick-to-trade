@@ -20,4 +20,4 @@ Only Spec and Review are mandatory. Any section can be one line.
 | [001](design/001-scope.md) | Scope and plan | Agreed |
 | [002](design/002-book-events-strategy.md) | Book events and the strategy | Measured |
 | [003](design/003-pre-trade-risk.md) | Pre-trade risk | Measured |
-| [004](design/004-program.md) | The program | Built |
+| [004](design/004-program.md) | The program | Measured |
