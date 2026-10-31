@@ -1,6 +1,6 @@
 # 002 — Book events and the strategy
 
-**Status:** Draft · **Updated:** 2026-10-30
+**Status:** Agreed · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -122,3 +122,4 @@ started at a configured value.
 | Date | Stage | Finding |
 |---|---|---|
 | 2026-10-30 | Draft | Written for review. Checked: the handler calls `book(applied)`, `status`, `directory`, `feed` and the trade calls on its sink, so a sink of this repo replaces the publisher without changing the feed handler; the publisher's level updates carry the best bid and ask after each change, so arrangement C can give the same events |
+| 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 the best bid's price triggers; D2 cancel/replace; D3 own sink in place of the publisher, and an adapter for the publisher's updates; D4 the feed thread never waits, newest event per instrument kept aside and each replaced one counted; D5 lists of 1, 10 and 100 instruments by best-bid changes over the open |
