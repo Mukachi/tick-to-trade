@@ -1,0 +1,130 @@
+# 005 — Measurement
+
+**Status:** Draft · **Updated:** 2026-10-31
+
+## Proposal
+
+Components 6 and 8 of note 001: tick to trade, measured as the repos before it measure, open
+loop, percentiles over at least three runs, the machine's conditions in every run. From the time
+our sender meant to send the ITCH message that caused an order to the time the venue reads that
+order, split into stages, for note 001's paths, paces, arrangements (D4) and durabilities (D6),
+beside the components' own published figures.
+
+It does:
+
+- the venue's stamp (note 001's D5: `order_venue` unchanged but for it), the program's two stage
+  stamps, and a benchmark that runs the programs and joins what they record;
+- the figures by path, pace, arrangement and durability, and the stages of the headline (D7);
+- open item T3 (kernel drops at 50k packets a second): explained, or stated with every figure it
+  touches, before any 50k figure is published (D5);
+- note 001's S3 as amended: two runs' agreement published.
+
+It does not:
+
+- change what the program does: the stamps are off unless configured, and their cost is stated;
+- measure throughput over the day: the feed handler's note 010 does, and the program adds the
+  strategy's work, published in notes 002 and 003.
+
+## Design
+
+**What a clock can see** (note 001): the sender writes each message's intended send time into a
+shared-memory array by sequence number (the feed handler's note 010, D1); the venue reads each
+order and stamps it, on the same machine and the same `CLOCK_MONOTONIC` (a network namespace
+shares it). The array holds 4 million messages and is overwritten after that (a few seconds at
+50k packets a second), so the program reads the stamp when it sends the order, not after the run.
+
+```mermaid
+flowchart LR
+  S[sender: intended send t0] --> F[feed thread: book event made t1]
+  F --> T[strategy thread: order written t2]
+  T --> G[engine: taken from the ring t3, its journal's time]
+  G --> V[venue: order read t4]
+```
+
+**The stages:** t0 to t1, the feed (the sender's kernel, loopback or the card, the receive,
+sequencing, decoding, the book and the sink); t1 to t2, the hand-off and the strategy and risk
+checks; t2 to t3, the application ring to the engine; t3 to t4, the session, the journal, the
+encode, TCP and the venue's read. t1 is a field the book event gains (it has 14 bytes spare; the
+stamp is left out of the event's equality, so the day tests' comparisons are unchanged); t2 is
+written beside each order the risk passes, with the order's ClOrdID, its message's sequence and
+t0 read from the array, in a list allocated at start and written at exit; t3 is the time of the
+order's send record in the gateway's journal (no change there); t4 is the venue's.
+
+**The venue's stamp:** `order_venue` gains an optional argument: for each D and G it reads, its
+ClOrdID and the time the read that held it returned (the time its turnaround already starts
+from), in a list written when the connection ends. A change to the gateway (note 001's D5).
+
+**The benchmark** (`t2t_bench`, run by `bench-run` in bench mode, the harness's checks in its own
+process): for each point it starts `order_venue`, `ttt` (and `itchfh` for arrangement C), drives
+our sender over its control port as the feed handler's `e2e_bench` does, waits for the program's
+end (D8 of note 004), then joins the program's list, the gateway's journal and the venue's list
+by ClOrdID into one run file with the environment block. Over the card, Shep starts the sender
+and the venue in the card's far namespace first (the feed handler's `tools/card-link`, namespace
+`itchfh-peer`), as for the feed handler's runs, and the benchmark drives them at 10.99.0.2.
+
+**Decisions** (each with what is proposed):
+
+- **D1. What is timed.** The strategy keeps one request in flight an instrument (note 002), so an
+  order is caused either by a book event (the bid moved and nothing was in flight) or by an
+  answer (the request in flight came back and the bid had moved meanwhile). *Proposed (A):* tick
+  to trade is t0 to t4 for each D and G caused by a book event; those caused by an answer have no
+  tick and are counted apart, their share published (and cancels, F, are not timed). *Alternative
+  (B):* also time answer-caused orders from the answer's arrival: another figure (answer to
+  order), not tick to trade.
+- **D2. The program's stage clock.** *Proposed (A):* `clock_gettime(CLOCK_MONOTONIC)` (the vDSO,
+  no system call with the TSC clocksource), the sender's and the venue's clock: two reads an
+  order, their cost measured and stated (S4 of note 004 then allows the vDSO call when stamping
+  is configured). *Alternative (B):* the TSC, converted at start: cheaper, but the conversion
+  drifts by up to the calibration's spread (10 ppm: 3 ms over five minutes), larger than the
+  figure.
+- **D3. Which points.** *Proposed (A):* the headline, arrangement A with journal C, on loopback
+  and the card, at 10k, 25k and 50k packets a second over the first 50 million messages and at
+  the day's own pace over the open (09:29:30 for five minutes, the feed handler's note 010, D3);
+  beside it, at 25k and over the open, loopback only: B, C, and journal A. About 25 minutes a
+  run on loopback, 10 on the card; three runs each. *Alternative (B):* the alternatives on the
+  card too: about 60% more bench time; the card adds the same path to each.
+- **D4. Journal A's engine.** *Proposed (A):* the gateway's pipeline (its fastest with A: p50 140 µs
+  against the direct loop's 255 at 10k orders a second, its note 008) with journal A on ext4 over the battery-backed controller, as it publishes.
+  *Alternative (B):* the direct loop with A: what the program's default engine would cost with
+  A, but 10k orders a second sustained at most (the gateway's note 008).
+- **D5. Open item T3.** *Proposed (A):* every point counts its kernel drops; the first bench-mode
+  runs decide: if there are none there, T3 is closed as found outside bench mode only; if there
+  are, the points are published with their count and the re-requested messages' latency left in
+  (open loop: they are the tail), stated with the figure, and the cause looked for. *Alternative
+  (B):* points with drops withheld.
+- **D6. The report.** *Proposed (A):* one table of tick to trade (p50, p99, p99.9, max) by path,
+  pace, arrangement and journal, with orders timed, the answer-caused share, kernel drops and the
+  sender's lateness; one of the headline's stages (p50, p99); the components' own figures beside
+  (the feed handler's packet to published update, the gateway's order to ExecutionReport); note
+  001's S3 agreement; a README summary: the headline at 25k on both paths and over the open.
+  *Alternative (B):* the stages for every point.
+
+## Spec
+
+- S1. Tick to trade (D1), open loop, published as p50, p99, p99.9 and max for each point of D3,
+  as ranges over at least three runs, with the orders timed, the answer-caused share, kernel drops
+  and the sender's lateness; in every run S1 of note 004 holds and every timed order is joined
+  (sender, program, journal, venue), none missing.
+- S2. The headline's stages (t0 to t1, t1 to t2, t2 to t3, t3 to t4) published, and they add up
+  to the whole for each order.
+- S3. The measurement's own cost (the clock reads, the stamp read, the lists) measured and stated;
+  with stamping off the program is unchanged (S4 of note 004 as it stands).
+- S4. T3 decided per D5 before any 50k figure is published.
+- S5. Every run carries the harness's environment block, and a run outside bench mode or from
+  an unclean build is refused for publication.
+- S6. Note 001's S5 and S6: the components' figures beside, and the default (A, journal C)
+  justified from the alternatives.
+
+## Tasks
+
+- [ ] The gateway: `order_venue`'s stamp list; re-pinned here
+- [ ] The program: t1 in the book event, t2 and the list (configured `stamps`), the stamp read
+- [ ] `t2t_bench`: the points, the join, the run file; the measurement's cost
+- [ ] `run.py`: the t2t set and its tables, the README block
+- [ ] Shep: three runs a path; publish; review
+
+## Review
+
+| Date | Stage | Finding |
+|---|---|---|
+| 2026-10-31 | Draft | Written for review. Read while writing: the feed handler's note 010 (stamps, open loop, the open's window) and `stamps.hpp` (4 million entries, so read live); its `tools/card-link` (multicast over the card, namespace `itchfh-peer`); `order_venue`'s turnaround stamp. Found: orders caused by an answer have no tick (D1); the program's clock must be `CLOCK_MONOTONIC`, not a converted TSC (D2) |
