@@ -1,6 +1,6 @@
 # 003 — Pre-trade risk
 
-**Status:** Agreed · **Updated:** 2026-10-31
+**Status:** Built · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -138,11 +138,11 @@ from every order and fill kept (no running sums), so a sum kept wrong in the fas
 
 ## Tasks
 
-- [ ] The limits and their configuration file; `order_answer` with a fill's price and quantity
-- [ ] The checks and the risk state (D1–D5, D7), the kill switch
-- [ ] The reference implementation
-- [ ] Tests S1–S6
-- [ ] The benchmark (S7)
+- [x] The limits and their configuration file (`include/ttt/limits.hpp`, `config/limits.conf`); `order_answer` with a fill's price and quantity
+- [x] The checks and the risk state (D1–D5, D7), the kill switch: `include/ttt/risk.hpp`
+- [x] The reference implementation: `include/ttt/reference_risk.hpp`
+- [x] Tests S1–S6: `risk_test`, `risk_day_test` (label `data`), `check_hot_path`
+- [x] The benchmark (S7): `bench/risk_bench.cpp`, `run.py`'s risk set
 
 ## Review
 
@@ -150,3 +150,6 @@ from every order and fill kept (no running sums), so a sum kept wrong in the fas
 |---|---|---|
 | 2026-10-31 | Draft | Written for review. Checked: RTS 6 Articles 12, 15 and 16 on legislation.gov.uk (up to date to 30 October 2026; revocation by FSMA 2023 listed, not yet applied; EUR-Lex gave no text to compare); 17 CFR 240.15c3-5 (c) on Cornell LII (eCFR redirected). Art. 15(3) is not a rate limit: it disables the system after a number of executions until a designated person re-enables it (D4). 15c3-5 (c)(1)(ii) also asks for duplicative orders to be refused (the duplicate check). The gateway's order book already throttles messages if configured (its note 007, D4): D7 |
 | 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 market time for the windows; D2 a reference price a period (one minute, 10% band); D3 a replace in flight counted at both prices; D4 fills in a sliding window engage the kill switch; D5 instrument and firm exposure limits; D6 no override; D7 the gateway's throttle off |
+| 2026-10-31 | Built | Read precisely while building: the risk is the strategy's output; a refusal is queued and taken by the loop (`take_refusal`), so the strategy is never called back inside its own call. The risk's own cancels (kill) carry `kill_bit` in their ID; their answer reaches the strategy as the venue cancelling the order, under the order's ID, and their rejection does not reach it (the order filled meanwhile, or replaced: then cancelled again). A cancel of the strategy's is kept apart from its new or replace in flight. A replace answered for an order already gone by the risk's account is counted at the replace's whole quantity (the venue says it lives). The limits are inclusive (exactly the limit passes). Note 004 maps the gateway's order events to `order_answer` (a fill's price and shares with it), gives the risk the session's state, and the operator the kill and re-enable |
+| 2026-10-31 | Built | Found by the random run against the reference (S4): a cancel sent while a request was in flight overwrote it, leaving the request's value in the running firm sum; and a replace answered for an order already gone made an order with no shares in the fast checks but none in the reference. Both fixed in both; a mutant (cancels not counted as messages) caught by S1 and S4. The reference's windows scanned every time kept at each check (quadratic over a day): they now count back from the newest |
+| 2026-10-31 | Built | Tests: `risk_test` (the configuration file; S1 each check by an intent built to break it, the edges inclusive, cancels through every check; S2 counting at send, a replace in flight at both prices; S3 the kill by the operator and by D4's throttle, an order acknowledged or replaced after it cancelled then; S4 in small, 300,000 random steps reaching every refusal reason); `risk_day_test` over the sample day (111 s): D5's 100 instruments, note 002's model venue, limits set to reach what the strategy can (value $30,000, ten instruments not permitted, period collar 30 bps, 40 messages a second, 40 fills a minute, $100,000 an instrument, $5 million the firm; the session down 09:30:10–09:30:40; the operator's kill 09:45–09:50, the throttle's re-enabled five minutes on). S4: the checks and the reference agree on every send, refusal, answer and count after every message, exposures every 100,000 messages: 17,698 passed, 671 cancels, 1,290 fills, 28 kill cancels, kill engaged twice; refused by kill 117,937, session 19,523, permission 171,031, value 782,428, period collar 221,023, messages 2,126, instrument exposure 3,645,986, firm exposure 990,539; the firm's exposure never past its limit. The strategy cannot reach unusable, duplicate, volume or collar (it never sends on an unusable book, keeps one order an instrument, a round lot, at the bid): `risk_test` covers them. S5: from the log alone a fresh reference replayed 5,968,962 intents to the same verdicts, and the venue received exactly what passed. S6: five risk subjects, memory functions only. ASan/UBSan and TSan clean. Trial of S7 (not bench mode): an intent's check p50 28 ns against 20 with no checks (the timer pair's own cost and a push), the reference 1,711; most of the strategy's intents refused by firm exposure once the model venue's fills are held (D5), the last check, so the full path |

@@ -29,6 +29,7 @@
 #include <lfipc/bench/noise_block.hpp>
 #include <lfipc/bench/run_file.hpp>
 
+#include <array>
 #include <chrono>
 #include <cstdio>
 #include <fstream>
@@ -52,7 +53,8 @@ struct collect {
 struct case_result {
     std::string name;
     hist event, check, answer;
-    std::uint64_t intents = 0, sent = 0, refused = 0, answers = 0;
+    std::uint64_t intents = 0, sent = 0, refused = 0, answers = 0, kills = 0, fills = 0;
+    std::array<std::uint64_t, ttt::refusal_kinds> by_reason{};
     double events_per_s = 0;
 };
 
@@ -143,6 +145,9 @@ struct runner {
         res->events_per_s = static_cast<double>(events.size()) / std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
         const ttt::risk_counts c = checks->counts();
         for (const std::uint64_t n : c.refused) res->refused += n;
+        res->by_reason = c.refused;
+        res->kills = c.kills;
+        res->fills = c.fills;
     }
 };
 
@@ -260,6 +265,12 @@ int main(int argc, char** argv) {
         run.w.member("sent", r->sent);
         run.w.member("refused", r->refused);
         run.w.member("answers", r->answers);
+        run.w.member("kills", r->kills);
+        run.w.member("fills", r->fills);
+        run.w.key("refused_by_reason");
+        run.w.begin_object();
+        for (int k = 1; k < ttt::refusal_kinds; ++k) run.w.member(ttt::name(static_cast<ttt::refusal>(k)), r->by_reason[k]);
+        run.w.end_object();
         stats("event", r->event);
         stats("check", r->check);
         stats("answer", r->answer);

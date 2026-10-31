@@ -133,11 +133,16 @@ def risk_rows(lf, runs):
                     + [lf.rng([c["event"][f] for c in cs]) for f in ("p50_ns", "p99_ns", "p999_ns")]
                     + ([lf.rng([c["check"][f] for c in cs]) for f in ("p50_ns", "p99_ns")] if cs[0]["check"]["count"] else ["–", "–"])
                     + [lf.rng([c["answer"][f] for c in cs]) for f in ("p50_ns", "p99_ns")]
-                    + [f"{cs[0]['intents']:,}", f"{cs[0]['refused']:,}"])
+                    + [f"{cs[0]['intents']:,}", f"{cs[0]['sent']:,}", f"{cs[0]['refused']:,}"])
     return rows
 
 
-RISK_HEAD = ["Case", "M events/s", "Book event p50", "p99", "p99.9", "Check p50", "p99", "Answer p50", "p99", "Intents", "Refused"]
+RISK_HEAD = ["Case", "M events/s", "Book event p50", "p99", "p99.9", "Check p50", "p99", "Answer p50", "p99", "Intents", "Sent", "Refused"]
+
+
+def risk_refusals(runs):
+    c = next(c for c in runs[0][1]["risk"]["cases"] if c["name"] == "checks")
+    return ", ".join(f"{k.replace('_', ' ')} {v:,}" for k, v in c["refused_by_reason"].items() if v)
 
 
 def risk_section(lf, note, runs):
@@ -150,7 +155,10 @@ def risk_section(lf, note, runs):
             "Timed between start() and stop(), unsubtracted, each apart: a book event's handling (the checks', the strategy's, and "
             "the check of every intent it sends), an intent's check alone, an answer's handling (the checks' and the strategy's). "
             f"The venue's own work is not timed. The first {r0['warmup_discarded']:,} book events discarded. The checks and the "
-            f"reference sent the same intents in every run. {len(runs)} runs; ranges over them.", "",
+            f"reference sent the same intents in every run. Refused, by reason: {risk_refusals(runs)}: the strategy only buys, so "
+            "once the model venue's fills are held the firm's exposure limit stops most new orders (note 003, D5); firm exposure is "
+            "the last check, so those refusals run every check. With no checks the strategy is answered otherwise, so its intents "
+            f"differ in number. {len(runs)} runs; ranges over them.", "",
             lf.table(RISK_HEAD, risk_rows(lf, runs)), ""]
 
 
