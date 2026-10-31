@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
@@ -111,6 +112,7 @@ struct sent_order {
     char type;
     std::uint64_t id;
     std::int64_t mono_ns;
+    std::uint64_t digest;  // the MsgType and body without TransactTime (note 001's S3: what was decided)
 };
 inline bool journal_orders(const std::string& path, std::vector<sent_order>& out) {
     fixgw::journal_reader r;
@@ -121,9 +123,17 @@ inline bool journal_orders(const std::string& path, std::vector<sent_order>& out
         if (tl != 1) continue;
         const char t = rec.payload[1];
         if (t != 'D' && t != 'F' && t != 'G') continue;
-        const auto id = fixgw::detail::body_field(rec.payload.substr(2), 11);
+        const std::string_view body = rec.payload.substr(2);
+        const auto id = fixgw::detail::body_field(body, 11);
         if (!id) return false;
-        out.push_back({t, std::stoull(std::string(*id)), rec.time.mono_ns});
+        std::uint64_t h = 1469598103934665603ULL ^ static_cast<unsigned char>(t);
+        for (std::size_t i = 0; i < body.size();) {
+            const std::size_t end = std::min(body.find('\x01', i), body.size());
+            if (body.substr(i, 3) != "60=")
+                for (std::size_t k = i; k <= end && k < body.size(); ++k) h = (h ^ static_cast<unsigned char>(body[k])) * 1099511628211ULL;
+            i = end + 1;
+        }
+        out.push_back({t, std::stoull(std::string(*id)), rec.time.mono_ns, h});
     }
     return true;
 }

@@ -8,7 +8,9 @@
 // program runs to the end of the day and ends as D8 says (every order
 // answered, logged out, exit 0), no answer unmapped; S1: every D, F and G in
 // the gateway's journal is a request the risk passed, in the same order, and
-// the passed requests not in it are the ones the gateway refused.
+// the passed requests not in it are the ones the gateway refused. And note
+// 001's S3 as amended (note 004, D7): the runs' orders compared, each against
+// the first (its body without TransactTime), up to the first difference.
 // Design: docs/design/004-program.md
 //
 // Usage: program_day_test [day.gz] [arrangements, default ABC] [packets a second, default 50000] [last message, default 0: the day]
@@ -20,16 +22,19 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <regex>
 #include <string>
 
 namespace {
 
 using namespace ttt::test;
 
-std::uint64_t field(const std::string& text, const std::string& re) {
-    std::smatch m;
-    return std::regex_search(text, m, std::regex(re)) ? std::stoull(m[1]) : ~std::uint64_t{0};
+// The number just before `suffix` in the program's output (all ones if none).
+std::uint64_t field(const std::string& text, const std::string& suffix) {
+    const std::size_t at = text.find(suffix);
+    if (at == std::string::npos || at == 0) return ~std::uint64_t{0};
+    std::size_t from = at;
+    while (from > 0 && text[from - 1] >= '0' && text[from - 1] <= '9') --from;
+    return from == at ? ~std::uint64_t{0} : std::stoull(text.substr(from, at - from));
 }
 
 }  // namespace
@@ -51,6 +56,7 @@ int main(int argc, char** argv) {
     const bool sender_up = ctl.up(10);
     check(sender_up, "feed_sender loaded the day");
     int k = 0;
+    std::vector<std::vector<std::uint64_t>> decided;  // each run's orders, for S3
     for (const char a : arrangements) {
         if (!sender_up) break;
         const auto t0 = std::chrono::steady_clock::now();
@@ -94,7 +100,7 @@ int main(int argc, char** argv) {
         std::size_t j = 0;
         for (std::size_t i = 0; i < ids.size() && j < orders.size(); ++i)
             if (ids[i] == orders[j].id) ++j;
-        const std::uint64_t gw_refused = field(text, R"(, (\d+) refused by the gateway)"), unmapped = field(text, R"(, (\d+) unmapped)");
+        const std::uint64_t gw_refused = field(text, " refused by the gateway"), unmapped = field(text, " unmapped");
         const bool s1 = read && j == orders.size() && ids.size() - orders.size() == gw_refused && text.find("lost ") == std::string::npos;
         const bool ended = exit_code == 0 && itchfh_exit == 0 && venue_exit == 0 && feed_text.find(a == 'C' ? "session ended" : "feed ended") != std::string::npos &&
                            text.find("every order answered; logged out") != std::string::npos;
@@ -102,7 +108,7 @@ int main(int argc, char** argv) {
         std::string summary = text.substr(text.rfind("ttt: arrangement"));
         if (!summary.empty() && summary.back() == '\n') summary.pop_back();
         check(ended && unmapped == 0, std::string("S6, arrangement ") + a + ": " + (last ? "messages 1 to " + std::to_string(last) : std::string("the day")) + " at " + std::to_string(static_cast<int>(pace)) +
-                                          " packets a second (" + std::to_string(sc.packets) + " sent; " + std::to_string(field(feed_text, R"((\d+) kernel drops)")) + " kernel drops) ran to its end and ended as D8 says (exit " +
+                                          " packets a second (" + std::to_string(sc.packets) + " sent; " + std::to_string(field(feed_text, " kernel drops")) + " kernel drops) ran to its end and ended as D8 says (exit " +
                                           std::to_string(exit_code) + (a == 'C' ? ", itchfh " + std::to_string(itchfh_exit) : "") + ", venue " +
                                           std::to_string(venue_exit) + "), no answer unmapped; " + std::to_string(minutes).substr(0, 4) +
                                           " min\n      " + summary);
@@ -110,7 +116,21 @@ int main(int argc, char** argv) {
                       " orders (D, F, G), each a request the risk passed, in its order (" + std::to_string(j) + " matched); " +
                       std::to_string(ids.size()) + " passed, " + std::to_string(ids.size() - orders.size()) + " not sent, " +
                       std::to_string(gw_refused) + " refused by the gateway");
+        std::vector<std::uint64_t> d;
+        d.reserve(orders.size());
+        for (const sent_order& o : orders) d.push_back(o.digest);
+        decided.push_back(std::move(d));
         std::filesystem::remove(journal);
+    }
+    // S3 as amended: agreement published, not required.
+    for (std::size_t r = 1; r < decided.size(); ++r) {
+        const auto& x = decided[0];
+        const auto& y = decided[r];
+        const std::size_t n = std::min(x.size(), y.size());
+        std::size_t same = 0;
+        while (same < n && x[same] == y[same]) ++same;
+        std::printf("info  S3 (note 001, amended): arrangement %c's orders against %c's: %zu and %zu orders, the first %zu the same%s\n",
+                    arrangements[r], arrangements[0], y.size(), x.size(), same, same == n && x.size() == y.size() ? " (all)" : "");
     }
     ctl.quit();
     wait_exit_for(sender, 60 * 1000);

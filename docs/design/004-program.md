@@ -1,6 +1,6 @@
 # 004 — The program
 
-**Status:** Agreed · **Updated:** 2026-10-31
+**Status:** Built · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -93,7 +93,7 @@ memory this costs is stated with the figures.
 arrangement; the CPUs (feed, strategy, engine, standby rebuild); the feed handler's own keys
 (group, ports, snapshot service, books); the session (CompIDs, venue address and port, journal
 kind and path, engine); the instrument list (note 002's `config/open-*.txt`) and the limits
-(`config/limits.conf`); the gateway's capacities; the control and monitoring block names.
+(`config/limits.conf`); the gateway's capacities; the block's name (`config/ttt-loopback.conf` is an example).
 
 **Monitoring**: a seqlocked block in shared memory (as the feed handler's note 009), written by
 the strategy thread every 100 ms: the arrangement; the session's state; the kill switch; the
@@ -169,10 +169,10 @@ it.
 - [x] The feed handler: the recovery takes its sink as a parameter (D4); re-pinned here
 - [x] The gateway: `logged_on()` on both engines (D3); fetched here at a pinned commit
 - [x] Orders out (D1) and answers in (D2): `include/ttt/orders.hpp`; S5's test
-- [ ] The program `ttt`: configuration, arrangements A, B and C, the gateway's capacities, D6, D8
-- [ ] Control and monitoring: the blocks, `ttt-ctl`, `ttt-monitor` (D5)
-- [ ] `feed_sender` and `order_venue` built here from their pinned sources (into `build/`)
-- [ ] Tests S1, S2, S4, S6 (the day: label `data`); note 001's S3 amended (D7)
+- [x] The program `ttt`: configuration, arrangements A, B and C, the gateway's capacities, D6, D8
+- [x] Control and monitoring: the blocks, `ttt-ctl`, `ttt-monitor` (D5)
+- [x] `feed_sender` and `order_venue` built here from their pinned sources (into `build/`)
+- [x] Tests S1, S2, S4, S6 (the day: label `data`); note 001's S3 amended (D7)
 
 ## Review
 
@@ -181,3 +181,5 @@ it.
 | 2026-10-31 | Draft | Written for review. Read while writing: the gateway's engine, pipeline, order book and `order_venue` (fix-order-gateway at e737703); the feed handler's `itchfh` and recovery (its note 011). Found: the direct engine publishes the connection, not the session (D3); the gateway's order tables never free an entry and are sized below a day (capacities); note 001's S3 cannot hold against a live venue (D7) |
 | 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 FIX bodies from templates; D2 answers from the message and the order event; D3 `logged_on()` in the gateway; D4 the feed handler's recovery takes its sink as a parameter; D5 a control block and `ttt-ctl`; D6 a new session each run; D7 note 001's S3 amended; D8 kill, answers awaited, logout |
 | 2026-10-31 | Agreed (building) | Corrected while building: a cancel's report is read by its own ClOrdID (the cancel's), not OrigClOrdID: the strategy settles a cancel by the request's ID and takes the order's ID as the venue's own cancel (note 002). Read precisely: an ExecutionReport carries LeavesQty, LastQty and LastPx itself, so each report and OrderCancelReject is read from the message alone and the order event after it is passed over; only a refused or not-sent event is read (D2 otherwise as agreed). The gateway's session needs its generated FIX 4.4 dictionary: generated here with its script, from the orchestrations at the commit and hashes it pins (checked against its CMakeLists). Upstream: itch-feed-handler d41cae3 (D4), fix-order-gateway 2bc4e40 (D3), both pinned. `orders_test` (S5): every row of D2's table, through the direct engine over loopback to the venue simulator, the rest from built slots; TransactTime's form; ASan/UBSan and TSan clean |
+| 2026-10-31 | Built | Read precisely while building: the control and the monitoring are one block (`block = /ttt`: the command word and the counters), `ttt-ctl` and `ttt-monitor` attach to it; SIGINT and SIGTERM are blocked on every thread and a thread of their own turns them into `stop` (D5). The program reports `feed_ready` once the feed is being read (its books built, its socket open; C: the consumer joined): the first trials sent before it and the feed lost ~2 s of datagrams to the kernel (52,000 to 79,000 at 25k a second; `itchfh` alone over the same stretch none), so the tests wait for it. The CompIDs default to `order_venue`'s (CLIENT, VENUE). The order slot is pushed into the gateway's ring directly, not by `submit_order`, whose doorbell `write(2)` the S4 check finds on the path even untaken; the passed IDs are a fixed array (the check found `vector::push_back`'s growth path). `itchfh`, `feed_sender` and `order_venue` built here from their pinned sources |
+| 2026-10-31 | Built | Tests: `orders_test` (S5), `config_test`, `check_hot_path` (S4: the strategy thread's event and pass, memory functions only), and through the programs (label `data`): `program_day_test` (S6, S1, S3 as amended), `program_s2_test` (S2). The day at 50,000 packets a second, twice in each arrangement (3.8 min each): every run to its end, every order answered and logged out (D8), no answer unmapped; S1 held in every run (A 4,692,438 and 4,711,324 orders journaled, B 4,641,900 and 4,685,983, C 4,620,714 and 4,556,532, each a request the risk passed, in its order; the rest, 0 to 2 a run, refused by the gateway as "order already finished": a kill cancel crossing a replace, then cancelled again, note 003). S3 as amended: B's and C's orders the same as A's for the first 23 and 21 of ~4.7 million, as D7 expected (answer timing decides the next order almost at once). S2 (A, 15k packets a second, 40 million messages): `ttt-ctl kill` answered every order as gone within 2 s, no D or G journaled until `reenable`, orders resumed; the venue's connection dropped: the session seen down, no D or G journaled until the venue took connections again, logged on again (caught up), orders resumed; 2,000 messages lost on purpose recovered from one snapshot through the sink (T2, 1.5 s), no D or G journaled while the feed was seen lost; mutant (the risk told the session is always up) caught: 21 orders journaled while down. The venue of S2 is the gateway's session and simulator on a thread of the test, keeping its session across connections: a restarted `order_venue` is a new session (sequence from 1), which the gateway refuses (MsgSeqNum too low), as FIX says. ASan/UBSan and TSan: the unit tests, and the program (A; TSan A and B) over 3 million messages, clean. Open: T3 (kernel drops in C) |

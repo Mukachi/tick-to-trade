@@ -1,6 +1,6 @@
 # 001 — Scope and plan
 
-**Status:** Agreed · **Updated:** 2026-10-30
+**Status:** Agreed · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -161,8 +161,10 @@ The repo as a whole, checked as the notes reach Measured:
 - S2. No new order is sent for an instrument whose book is marked unreliable, or while the
   gateway is not logged on; after the kill switch, no new order is sent and every open order is
   cancelled.
-- S3. The sample day replayed twice gives the same orders (instrument, side, price, quantity, in
-  the same order).
+- S3. The strategy and the risk checks give the same orders (instrument, side, price, quantity, in
+  the same order) for the same inputs in the same order. Two runs of the program are compared and
+  their agreement published, not required: against a live venue, when an answer arrives relative
+  to the book events decides what is sent next (amended by note 004, D7).
 - S4. The feed-to-order hot path makes no allocation in steady state and no system call but the
   socket reads and writes it is meant to make (the compiled call graph checked, as the repos
   before it).
@@ -182,3 +184,4 @@ The repo as a whole, checked as the notes reach Measured:
 |---|---|---|
 | 2026-10-30 | Draft | Written for review from the record (no overview exists for this repo). Checked while writing: RTS 6 Art. 15's text (legislation.gov.uk), its UK status (FCA review, August 2025; listed for revocation under FSMA 2023), Rule 15c3-5's adopting release, FIA's July 2024 paper; the feed handler's consumer and handler sink, the gateway's application rings and `order_venue`; both repos pin `lockfree-ipc` at `c733131` |
 | 2026-10-30 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 `tick-to-trade`; D2 quote following on a configured list; D3 RTS 6 Art. 15's entry checks and throttle, a permission list, 15c3-5's credit limit on open orders and fills, the kill switch; D4 one process, three threads, with one thread and a publisher consumer process measured beside it; D5 `order_venue` with a stamp; D6 journal C the headline, A beside; D7 fixed paces and the open, loopback and the card |
+| 2026-10-31 | Agreed (amended) | S3 amended by note 004's D7 (agreed by Shep): the program's orders depend on when the venue's answers arrive relative to the book events (one request in flight an instrument), so two runs are compared and their agreement published; determinism is required of the strategy and the risk for the same inputs in the same order, shown by notes 002 and 003's day tests |

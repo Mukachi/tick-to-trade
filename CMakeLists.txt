@@ -116,7 +116,7 @@ target_link_libraries(ttt INTERFACE deps Threads::Threads)
 set(TTT_DATA_DIR ${CMAKE_SOURCE_DIR}/data CACHE PATH "Where the sample day is")
 
 # Tests: plain executables under CTest. Each one added with its component.
-set(TTT_TESTS strategy_test ring_test sink_test risk_test orders_test)
+set(TTT_TESTS strategy_test ring_test sink_test risk_test orders_test config_test)
 foreach(t ${TTT_TESTS})
   add_executable(${t} tests/${t}.cpp)
   target_link_libraries(${t} PRIVATE ttt)
@@ -132,6 +132,7 @@ if(CMAKE_OBJDUMP AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64" AND NOT CMAKE
                    ${CMAKE_OBJDUMP} $<TARGET_FILE:hot_path_subject>)
 endif()
 target_compile_definitions(risk_test PRIVATE TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
+target_compile_definitions(config_test PRIVATE TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
 # The feed handler's synthetic stream (its tests/), for S1 in small.
 target_include_directories(sink_test PRIVATE ${itch_feed_handler_SOURCE_DIR}/tests)
 
@@ -203,3 +204,11 @@ target_compile_definitions(program_day_test PRIVATE TTT_DATA_DIR="${TTT_DATA_DIR
 add_dependencies(program_day_test feed_sender order_venue itchfh_program ttt_program)
 add_test(NAME program_day_test COMMAND program_day_test)
 set_tests_properties(program_day_test PROPERTIES LABELS data TIMEOUT 14400)
+add_executable(program_s2_test tests/program_s2_test.cpp)
+target_link_libraries(program_s2_test PRIVATE ttt)
+target_compile_definitions(program_s2_test PRIVATE TTT_DATA_DIR="${TTT_DATA_DIR}" TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config"
+  TTT_BUILD_DIR="${CMAKE_BINARY_DIR}" TTT_SENDER="$<TARGET_FILE:feed_sender>" TTT_VENUE="$<TARGET_FILE:order_venue>"
+  TTT_PROGRAM="$<TARGET_FILE:ttt_program>" TTT_CTL="$<TARGET_FILE:ttt-ctl>")
+add_dependencies(program_s2_test feed_sender order_venue ttt_program ttt-ctl)
+add_test(NAME program_s2_test COMMAND program_s2_test)
+set_tests_properties(program_s2_test PROPERTIES LABELS data TIMEOUT 3600)
