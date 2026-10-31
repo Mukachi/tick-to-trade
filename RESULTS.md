@@ -9,6 +9,7 @@ HP ProLiant DL380 Gen9, BIOS P89 (08/29/2024); 2 × Intel(R) Xeon(R) CPU E5-2699
 | Set | Runs | First run | Commit | Governor | Idle states enabled | Turbo | NUMA balancing | Boot isolation | Reserved CPUs |
 |---|---|---|---|---|---|---|---|---|---|
 | sink (note 002) | 3 | 2026-10-31 13:05 UTC | 4ede151 | performance | C1 C1E C3 C6 POLL | on | off | yes | 2-21,46-65 |
+| risk (note 003) | 3 | 2026-10-31 17:44 UTC | ceddf71 | performance | C1 C1E C3 C6 POLL | on | off | yes | 2-21,46-65 |
 
 Every run met note 004's bench-mode conditions (each file's `environment.bench_mode`, checked before use) and was built clean; compiler and flags are in each file's `environment.build`. Ranges are min–max over a set's runs.
 
@@ -23,3 +24,13 @@ The first 50,000,000 messages of the sample day `01302020.NASDAQ_ITCH50.gz` (the
 | sink, 1 instrument | 4.11–4.17 | 204–205 | 631–646 | 906–962 | 6,559–7,730 | 392,472 |
 | sink, 10 instruments | 4.04–4.10 | 207–208 | 637–653 | 914–966 | 3.8–17.9 µs | 1,722,283 |
 | sink, 100 instruments | 3.88–3.93 | 216–218 | 649–670 | 921–973 | 4.5–17.9 µs | 4,717,340 |
+
+## Pre-trade risk (note 003)
+
+The strategy's thread on one pinned CPU (CPU 2), given the 4,717,340 book events the strategy's sink gives for D5's 100 instruments over the first 50,000,000 messages of the sample day `01302020.NASDAQ_ITCH50.gz` (collected first, into memory), the strategy's intents answered by note 002's model venue: with no checks, through the risk checks (the default limits, `config/limits.conf`), and through the reference implementation. Timed between start() and stop(), unsubtracted, each apart: a book event's handling (the checks', the strategy's, and the check of every intent it sends), an intent's check alone, an answer's handling (the checks' and the strategy's). The venue's own work is not timed. The first 10,000 book events discarded. The checks and the reference sent the same intents in every run. Refused, by reason: value 24,210, period collar 1,307, instrument exposure 17,681, firm exposure 1,006,029: the strategy only buys, so once the model venue's fills are held the firm's exposure limit stops most new orders (note 003, D5); firm exposure is the last check, so those refusals run every check. With no checks the strategy is answered otherwise, so its intents differ in number. 3 runs; ranges over them.
+
+| Case | M events/s | Book event p50 | p99 | p99.9 | Check p50 | p99 | Answer p50 | p99 | Intents | Sent | Refused |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| no checks | 12.26–12.27 | 23 | 105–106 | 247–249 | 21 | 29 | 22 | 78–79 | 935,763 | 935,763 | 0 |
+| checks | 10.85–10.88 | 34 | 118–119 | 260–262 | 25 | 40–41 | 32 | 128–129 | 1,109,961 | 60,734 | 1,049,227 |
+| reference | 1.39–1.45 | 79 | 3,724–4,361 | 14.8 µs–21.8 µs | 1,789–1,829 | 14.4 µs–20.7 µs | 594–649 | 16.3 µs–24.2 µs | 1,109,961 | 60,734 | 1,049,227 |

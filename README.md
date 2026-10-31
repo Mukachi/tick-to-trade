@@ -25,5 +25,11 @@ The sample day's first 50,000,000 messages through the feed handler's handler on
 <!-- /results -->
 
 <!-- results:risk-summary -->
-Pre-trade risk: not yet measured (design note 003).
+| Case | M events/s | Book event p50 | p99 | p99.9 | Check p50 | p99 | Answer p50 | p99 | Intents | Sent | Refused |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| no checks | 12.26–12.27 | 23 | 105–106 | 247–249 | 21 | 29 | 22 | 78–79 | 935,763 | 935,763 | 0 |
+| checks | 10.85–10.88 | 34 | 118–119 | 260–262 | 25 | 40–41 | 32 | 128–129 | 1,109,961 | 60,734 | 1,049,227 |
+| reference | 1.39–1.45 | 79 | 3,724–4,361 | 14.8 µs–21.8 µs | 1,789–1,829 | 14.4 µs–20.7 µs | 594–649 | 16.3 µs–24.2 µs | 1,109,961 | 60,734 | 1,049,227 |
+
+The strategy's thread on one CPU over the sample day's first 50,000,000 messages' book events for 100 instruments, with no checks, the risk checks, or their reference implementation; ns, range over runs. The method: [RESULTS.md](RESULTS.md).
 <!-- /results -->
