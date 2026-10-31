@@ -1,6 +1,6 @@
 # 002 — Book events and the strategy
 
-**Status:** Agreed · **Updated:** 2026-10-31
+**Status:** Built · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -111,11 +111,11 @@ started at a configured value.
 
 ## Tasks
 
-- [ ] The sink, the adapter and the events (D1, D3)
-- [ ] The strategy (D2) and the reference strategy
-- [ ] The ring with D4's newest-aside rule
-- [ ] The ranking tool and the lists (D5)
-- [ ] Tests S1–S5; the benchmark (S6)
+- [x] The sink, the adapter and the events (D1, D3): `include/ttt/events.hpp`, `sink.hpp`, `adapter.hpp`
+- [x] The strategy (D2) and the reference strategy: `strategy.hpp`, `reference_strategy.hpp`
+- [x] The ring with D4's newest-aside rule: `event_ring.hpp`
+- [x] The ranking tool and the lists (D5): `tools/rank_open.cpp`, `config/open-{1,10,100}.txt`
+- [x] Tests S1–S5 (`sink_test`, `strategy_test`, `ring_test`, `day_test` (label `data`), `check_hot_path`); the benchmark (S6): `bench/sink_bench.cpp`, `run.py`
 
 ## Review
 
@@ -123,3 +123,6 @@ started at a configured value.
 |---|---|---|
 | 2026-10-30 | Draft | Written for review. Checked: the handler calls `book(applied)`, `status`, `directory`, `feed` and the trade calls on its sink, so a sink of this repo replaces the publisher without changing the feed handler; the publisher's level updates carry the best bid and ask after each change, so arrangement C can give the same events |
 | 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 the best bid's price triggers; D2 cancel/replace; D3 own sink in place of the publisher, and an adapter for the publisher's updates; D4 the feed thread never waits, newest event per instrument kept aside and each replaced one counted; D5 lists of 1, 10 and 100 instruments by best-bid changes over the open |
+| 2026-10-31 | Built | Read precisely while building, the Draft unchanged in substance: a *new best bid* (D1) is a bid price other than the last usable event's, or the first usable event after an unusable one (so trading resumes at the old price without waiting for the bid to move); an event with no best bid is unusable (a resting order is cancelled: nothing to follow). Client order IDs: the counter above 16 bits, the instrument's slot below, so an answer finds its instrument without a lookup. Answers are this repo's own (`order_answer`: accepted, replaced, cancelled, rejected, filled, partly filled); note 004 maps the gateway's order events to them. The adapter learns locates only from directory updates (the publisher never replays them) and, on joining, reads trading states from the state table: open item T1 |
+| 2026-10-31 | Built | Found by the random run's one-request-in-flight check: a fill, or the venue's own cancel, by the order's ID while a cancel was in flight settled the request early, so a second request could leave before the first was answered. Now the request's own answer is always awaited (the replace case already was); mutant of the old code checked. The feed handler's recovery (its note 011) is written for its publisher; the sink has the publisher's calls (rebind, watch, mute, restored) but the recovery cannot take it as it stands: open item T2, for note 004 |
+| 2026-10-31 | Built | Tests: S1 in small (`sink_test`: the feed handler's synthetic stream with halts, a refused event and a gapped feed; sink and adapter both equal to the derived events; mutants of the sink's status call and the adapter's feed state checked); S2, S3 (`strategy_test`: the table state by state, then a million random events and answers against the reference strategy); S4 (`ring_test`, one thread and two, TSan); S5 (`check_hot_path`: seven subjects, memory functions only; an allocation mutant caught). Over the sample day (`day_test`, label `data`, 657 s): 423,285,709 messages, D5's 100 instruments; 38,619,438 book events from the sink and the adapter equal those derived from the reference book after every message (S1); 5,272,061 intents (309,728 new, 4,957,390 replace, 4,943 cancel, against the model venue) equal the reference strategy's (S2). D5 (`rank_open`): TQQQ first with 9,324 best-bid changes over the open; the open is messages 13.4 to 23.4 million. ASan/UBSan and TSan clean. Trial of S6 (not bench mode, the day test running beside it): no sink p50 193 ns, publisher 260, the sink with 1, 10 and 100 instruments 200, 203, 211; nothing found the ring full |

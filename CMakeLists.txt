@@ -79,5 +79,38 @@ foreach(t ${TTT_TESTS})
   target_link_libraries(${t} PRIVATE ttt)
   add_test(NAME ${t} COMMAND ${t})
 endforeach()
+# S5 of note 002: the hot paths allocate nothing and make no system call,
+# checked in the compiled code (not under sanitizers, which add calls).
+add_executable(hot_path_subject tests/hot_path_subject.cpp)
+target_link_libraries(hot_path_subject PRIVATE ttt)
+if(CMAKE_OBJDUMP AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64" AND NOT CMAKE_CXX_FLAGS MATCHES "-fsanitize")
+  add_test(NAME check_hot_path
+           COMMAND Python3::Interpreter -I ${CMAKE_SOURCE_DIR}/tests/check_hot_path.py
+                   ${CMAKE_OBJDUMP} $<TARGET_FILE:hot_path_subject>)
+endif()
 # The feed handler's synthetic stream (its tests/), for S1 in small.
 target_include_directories(sink_test PRIVATE ${itch_feed_handler_SOURCE_DIR}/tests)
+
+# D5's tool: the instrument lists for the benchmarks, ranked over the open (config/open-<n>.txt).
+add_executable(rank_open tools/rank_open.cpp)
+target_link_libraries(rank_open PRIVATE ttt)
+target_compile_definitions(rank_open PRIVATE TTT_DATA_DIR="${TTT_DATA_DIR}" TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
+
+# Over the sample day (label `data`: needs data/, so CI leaves it out).
+add_executable(day_test tests/day_test.cpp)
+target_link_libraries(day_test PRIVATE ttt)
+target_include_directories(day_test PRIVATE tools)
+target_compile_definitions(day_test PRIVATE TTT_DATA_DIR="${TTT_DATA_DIR}" TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
+add_test(NAME day_test COMMAND day_test)
+set_tests_properties(day_test PROPERTIES LABELS data TIMEOUT 14400)
+
+# The benchmark (note 002, S6): writes into results/ only in bench mode.
+add_executable(sink_bench bench/sink_bench.cpp)
+target_link_libraries(sink_bench PRIVATE ttt)
+target_include_directories(sink_bench PRIVATE tools)
+target_compile_definitions(sink_bench PRIVATE LFIPC_RESULTS_DIR="${CMAKE_SOURCE_DIR}/results" TTT_DATA_DIR="${TTT_DATA_DIR}"
+                                              TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
+
+# One number everywhere: a stale RESULTS.md or README figure fails the suite.
+add_test(NAME report_check COMMAND Python3::Interpreter -I ${CMAKE_SOURCE_DIR}/run.py report --check
+                                  --lockfree-ipc ${lockfree_ipc_SOURCE_DIR})

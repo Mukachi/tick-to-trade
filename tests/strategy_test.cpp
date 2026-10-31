@@ -4,6 +4,7 @@
 // state checked after every step).
 // Spec: docs/design/002-book-events-strategy.md
 #include "check.hpp"
+#include "venue_model.hpp"
 
 #include <ttt/reference_strategy.hpp>
 #include <ttt/strategy.hpp>
@@ -20,6 +21,8 @@ namespace {
 
 using namespace ttt;
 using ttt::test::check;
+using ttt::test::venue;
+using ttt::test::venue_out;
 
 struct intents {
     std::vector<ttt::intent> v;
@@ -172,57 +175,6 @@ void table() {
     check(s.counts().unknown_answers == before + 3 && sent() == 0, "an answer with no order or request of its ID: counted, nothing changes");
 }
 
-// The venue for the random run: answers the oldest request after a random
-// number of events, mostly as asked; sometimes rejects, sometimes fills.
-template <class S>
-struct venue {
-    std::mt19937_64 rng;
-    std::deque<ttt::intent> waiting;
-    std::vector<std::uint64_t> resting;  // per slot
-    explicit venue(std::size_t slots) : rng(7), resting(slots, 0) {}
-    void intent(const ttt::intent& i) { waiting.push_back(i); }
-    void step(S& s) {
-        if (!waiting.empty() && rng() % 3 == 0) {
-            const ttt::intent i = waiting.front();
-            waiting.pop_front();
-            const bool reject = rng() % 10 == 0;
-            if (reject) {
-                s.answer(order_answer{order_answer::rejected, i.id});
-                return;
-            }
-            switch (i.kind) {
-                case ttt::intent::new_order: resting[i.slot] = i.id; s.answer(order_answer{order_answer::accepted, i.id}); break;
-                case ttt::intent::replace:
-                    if (resting[i.slot] != i.orig_id) s.answer(order_answer{order_answer::rejected, i.id});
-                    else resting[i.slot] = i.id, s.answer(order_answer{order_answer::replaced, i.id});
-                    break;
-                case ttt::intent::cancel:
-                    if (resting[i.slot] != i.orig_id) s.answer(order_answer{order_answer::rejected, i.id});
-                    else resting[i.slot] = 0, s.answer(order_answer{order_answer::cancelled, i.id});
-                    break;
-            }
-        }
-        if (rng() % 50 == 0) {
-            const std::size_t slot = rng() % resting.size();
-            if (resting[slot]) {
-                const std::uint64_t id = resting[slot];
-                if (rng() % 2) resting[slot] = 0, s.answer(order_answer{order_answer::filled, id});
-                else s.answer(order_answer{order_answer::partly_filled, id});
-            }
-        }
-    }
-};
-
-template <class S>
-struct venue_out {
-    venue<S>* v;
-    std::vector<ttt::intent> log;
-    void intent(const ttt::intent& i) {
-        log.push_back(i);
-        v->intent(i);
-    }
-};
-
 void random_run() {
     constexpr std::size_t slots = 5;
     // Each strategy with its own venue, seeded alike: equal intents give equal answers.
@@ -230,7 +182,7 @@ void random_run() {
         venue_out<strategy<fast_side>>* out;
         void intent(const ttt::intent& i) { out->intent(i); }
     };
-    venue<strategy<fast_side>> fv(slots);
+    venue<strategy<fast_side>> fv(slots, 7);
     venue_out<strategy<fast_side>> fo{&fv, {}};
     fast_side fs{&fo};
     strategy<fast_side> fast(slots, fs, {100});
@@ -239,7 +191,7 @@ void random_run() {
         venue_out<reference_strategy<ref_side>>* out;
         void intent(const ttt::intent& i) { out->intent(i); }
     };
-    venue<reference_strategy<ref_side>> rv(slots);
+    venue<reference_strategy<ref_side>> rv(slots, 7);
     venue_out<reference_strategy<ref_side>> ro{&rv, {}};
     ref_side rs{&ro};
     reference_strategy<ref_side> ref(rs, {100});
