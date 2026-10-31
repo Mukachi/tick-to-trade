@@ -5,12 +5,16 @@
 // update; the strategy's for a book event and for an answer, with an output
 // that does nothing; and the strategy thread's pop. And the risk checks (note
 // 003, S6): an intent, an answer, a book event, a refusal taken, the kill.
-// Spec: docs/design/002-book-events-strategy.md, docs/design/003-pre-trade-risk.md
+// And the program's strategy thread (note 004, S4): a book event through the
+// risk and the strategy to an order message in the gateway's ring, and a pass
+// (the gateway's answers read, its session's state, a command, the counters).
+// Spec: docs/design/002-book-events-strategy.md, docs/design/003-pre-trade-risk.md, docs/design/004-program.md
 #include <ttt/adapter.hpp>
 #include <ttt/event_ring.hpp>
 #include <ttt/risk.hpp>
 #include <ttt/sink.hpp>
 #include <ttt/strategy.hpp>
+#include <ttt/trader.hpp>
 
 using ring = ttt::event_ring<>;
 using fed = ttt::strategy_feed<ring>;
@@ -35,6 +39,13 @@ extern "C" [[gnu::noinline]] bool ttt_risk_answer(ttt::risk<quiet_send>& r, cons
 extern "C" [[gnu::noinline]] void ttt_risk_event(ttt::risk<quiet_send>& r, const ttt::book_event& e) { r.on(e); }
 extern "C" [[gnu::noinline]] bool ttt_risk_refusal(ttt::risk<quiet_send>& r, ttt::order_answer& a) { return r.take_refusal(a); }
 extern "C" [[gnu::noinline]] void ttt_risk_kill(ttt::risk<quiet_send>& r) { r.kill(); }
+// Note 004, S4: the strategy thread
+struct fake_engine {
+    bool logged_on() const { return true; }
+};
+using program_trader = ttt::trader<fake_engine>;
+extern "C" [[gnu::noinline]] void ttt_trader_event(program_trader& t, const ttt::book_event& e) { t.push(e); }
+extern "C" [[gnu::noinline]] bool ttt_trader_pass(program_trader& t, ttt::mon::block* b) { return t.pass(b); }
 
 // Never run: the subjects are only read from the binary.
 int main(int argc, char**) {
@@ -62,6 +73,11 @@ int main(int argc, char**) {
         ttt_risk_event(k, e);
         ttt_risk_refusal(k, oa);
         ttt_risk_kill(k);
+        fake_engine g;
+        auto to_gw = std::make_unique<fixgw::app_ring>(), from_gw = std::make_unique<fixgw::app_ring>();
+        program_trader t(ins, ttt::limits{}, g, *to_gw, *from_gw, 2.2, 16, 'A');
+        ttt_trader_event(t, e);
+        ttt_trader_pass(t, nullptr);
         return ttt_ring_pop(*r, e);
     }
     return 0;

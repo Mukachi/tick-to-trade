@@ -27,6 +27,8 @@ template <class Book, class Out>
 class sink {
 public:
     sink(const Book& b, instruments& i, Out& out) : book_(&b), ins_(i), out_(out), last_(i.size()), round_lot_(i.size(), 0) {}
+    // No book yet: the feed handler's recovery rebinds it to its own before the first message (note 004).
+    sink(instruments& i, Out& out) : book_(nullptr), ins_(i), out_(out), last_(i.size()), round_lot_(i.size(), 0) {}
 
     void rebind(const Book& b) { book_ = &b; }
     template <class H>

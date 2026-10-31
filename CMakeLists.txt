@@ -171,3 +171,35 @@ target_link_libraries(risk_bench PRIVATE ttt)
 target_include_directories(risk_bench PRIVATE tools tests)
 target_compile_definitions(risk_bench PRIVATE LFIPC_RESULTS_DIR="${CMAKE_SOURCE_DIR}/results" TTT_DATA_DIR="${TTT_DATA_DIR}"
                                               TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
+
+# The program and its tools (note 004).
+# The library target is `ttt`, so the program's target is ttt_program, its file `ttt`.
+add_executable(ttt_program apps/ttt.cpp)
+set_target_properties(ttt_program PROPERTIES OUTPUT_NAME ttt)
+add_executable(ttt-ctl apps/ttt_ctl.cpp)
+add_executable(ttt-monitor apps/ttt_monitor.cpp)
+foreach(p ttt_program ttt-ctl ttt-monitor)
+  target_link_libraries(${p} PRIVATE ttt)
+endforeach()
+
+# The peers, built here from their pinned sources (into build/): the feed
+# handler's sender of the sample day and the gateway's venue (note 004).
+add_executable(feed_sender ${itch_feed_handler_SOURCE_DIR}/bench/feed_sender.cpp)
+target_link_libraries(feed_sender PRIVATE ttt)
+target_include_directories(feed_sender PRIVATE ${itch_feed_handler_SOURCE_DIR}/bench)
+target_compile_definitions(feed_sender PRIVATE ITCHFH_DATA_DIR="${TTT_DATA_DIR}")
+add_executable(order_venue ${fix_order_gateway_SOURCE_DIR}/bench/order_venue.cpp)
+target_link_libraries(order_venue PRIVATE ttt)
+add_executable(itchfh_program ${itch_feed_handler_SOURCE_DIR}/apps/itchfh.cpp)
+set_target_properties(itchfh_program PROPERTIES OUTPUT_NAME itchfh)
+target_link_libraries(itchfh_program PRIVATE ttt)
+
+# Through the programs (note 004, S1 and S6; label `data`: needs data/).
+add_executable(program_day_test tests/program_day_test.cpp)
+target_link_libraries(program_day_test PRIVATE ttt)
+target_compile_definitions(program_day_test PRIVATE TTT_DATA_DIR="${TTT_DATA_DIR}" TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config"
+  TTT_BUILD_DIR="${CMAKE_BINARY_DIR}" TTT_SENDER="$<TARGET_FILE:feed_sender>" TTT_VENUE="$<TARGET_FILE:order_venue>"
+  TTT_ITCHFH="$<TARGET_FILE:itchfh_program>" TTT_PROGRAM="$<TARGET_FILE:ttt_program>")
+add_dependencies(program_day_test feed_sender order_venue itchfh_program ttt_program)
+add_test(NAME program_day_test COMMAND program_day_test)
+set_tests_properties(program_day_test PROPERTIES LABELS data TIMEOUT 14400)
