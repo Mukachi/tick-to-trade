@@ -1,6 +1,6 @@
 # 005 — Measurement
 
-**Status:** Draft · **Updated:** 2026-10-31
+**Status:** Agreed · **Updated:** 2026-10-31
 
 ## Proposal
 
@@ -128,3 +128,4 @@ and the venue in the card's far namespace first (the feed handler's `tools/card-
 | Date | Stage | Finding |
 |---|---|---|
 | 2026-10-31 | Draft | Written for review. Read while writing: the feed handler's note 010 (stamps, open loop, the open's window) and `stamps.hpp` (4 million entries, so read live); its `tools/card-link` (multicast over the card, namespace `itchfh-peer`); `order_venue`'s turnaround stamp. Found: orders caused by an answer have no tick (D1); the program's clock must be `CLOCK_MONOTONIC`, not a converted TSC (D2) |
+| 2026-10-31 | Agreed | Approved by Shep, every decision as proposed (option A each): D1 D and G caused by a book event timed, answer-caused counted apart; D2 `CLOCK_MONOTONIC` stage stamps; D3 the headline on both paths at three paces and the open, the alternatives at 25k and the open on loopback; D4 journal A on the pipeline; D5 T3 decided by the first bench-mode runs; D6 the report |
