@@ -73,7 +73,7 @@ target_link_libraries(ttt INTERFACE deps Threads::Threads)
 set(TTT_DATA_DIR ${CMAKE_SOURCE_DIR}/data CACHE PATH "Where the sample day is")
 
 # Tests: plain executables under CTest. Each one added with its component.
-set(TTT_TESTS strategy_test ring_test sink_test)
+set(TTT_TESTS strategy_test ring_test sink_test risk_test)
 foreach(t ${TTT_TESTS})
   add_executable(${t} tests/${t}.cpp)
   target_link_libraries(${t} PRIVATE ttt)
@@ -88,6 +88,7 @@ if(CMAKE_OBJDUMP AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64" AND NOT CMAKE
            COMMAND Python3::Interpreter -I ${CMAKE_SOURCE_DIR}/tests/check_hot_path.py
                    ${CMAKE_OBJDUMP} $<TARGET_FILE:hot_path_subject>)
 endif()
+target_compile_definitions(risk_test PRIVATE TTT_CONFIG_DIR="${CMAKE_SOURCE_DIR}/config")
 # The feed handler's synthetic stream (its tests/), for S1 in small.
 target_include_directories(sink_test PRIVATE ${itch_feed_handler_SOURCE_DIR}/tests)
 

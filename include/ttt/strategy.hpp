@@ -51,6 +51,8 @@ struct order_answer {
         partly_filled, // part of it filled: it rests on
     } kind;
     std::uint64_t id;  // the request's ID (accepted, replaced, rejected); the order's (cancelled, filled, partly_filled)
+    std::uint32_t price = 0;     // filled, partly_filled: the fill's (four implied decimals)
+    std::uint32_t quantity = 0;  // filled, partly_filled: the fill's shares (filled: the last fill)
     bool operator==(const order_answer&) const = default;
 };
 
