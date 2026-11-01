@@ -18,7 +18,7 @@
 // Usage: t2t_bench loopback|card [output.json] [--quick]
 //   --quick: a check run (not for results/): each point at 25k without the open, over 5 million messages
 //   loopback: build/feed_sender 127.0.0.1 239.192.0.1 26400 26401 5 0 data/<day> /ttt-stamps
-//   card:     inside itchfh-peer, the same at 10.99.0.2, and build/order_venue 26500 6 4 build/t2t-venue stamps
+//   card:     inside itchfh-peer, the same at 10.99.0.2, and build/order_venue 10.99.0.2:26500 6 4 build/t2t-venue stamps
 // The open (D3, amended): the morning at 50,000 packets a second, then the
 // open (09:29:30 for five minutes) at the day's own pace; only orders caused
 // by the open's messages are timed.
@@ -45,6 +45,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <signal.h>
 
 namespace {
 
@@ -238,6 +240,26 @@ int main(int argc, char** argv) {
         for (int i = 0; attached && i < 1200 && !(v[ttt::mon::logged_on] && v[ttt::mon::feed_ready]); ++i) {
             b.read(v);
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        if (!v[ttt::mon::logged_on] || !v[ttt::mon::feed_ready]) {  // nothing would be timed: say why, and skip the point
+            std::printf("%-20s INCOMPLETE; %s within 60 s (is the venue listening at %s:26500?)\n", pt.name,
+                        !attached ? "the program's block never appeared" : !v[ttt::mon::logged_on] ? "never logged on" : "the feed never ready",
+                        card ? "10.99.0.2" : "127.0.0.1");
+            std::fflush(stdout);
+            ::kill(program, SIGTERM);
+            wait_exit_for(program, 60 * 1000);
+            if (itchfh > 0) {
+                ::kill(itchfh, SIGTERM);
+                wait_exit_for(itchfh, 60 * 1000);
+            }
+            if (venue > 0) {
+                ::kill(venue, SIGTERM);
+                wait_exit_for(venue, 60 * 1000);
+            }
+            results.push_back(r);
+            std::filesystem::remove(journal);
+            ++k;
+            continue;
         }
         char session[11] = "TTT2T00000";
         session[8] = static_cast<char>('0' + k / 10);
