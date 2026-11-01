@@ -60,6 +60,8 @@ From the time our sender meant to send the ITCH message that caused an order (it
 
 Journal A at 25k (loopback): its max, 4.1–77.1 ms over the runs, is all in the gateway-and-venue stage, where the pipeline's `fdatasync` to ext4 is; its cause was not found (open item T4, parked: journal A is beside the default, not it).
 
+The default is A. B, the same work on the feed's thread, is faster at every point measured (loopback, 25k: p50 20.9 µs–21.2 µs against 22.0 µs–22.2 µs, p99.9 79.3 µs–82.1 µs against 84.4 µs–86.5 µs; over the open p50 20.0 µs–20.5 µs against 20.8 µs–20.9 µs): that is the cost of A's ring between the threads with this strategy. A is kept because its feed thread never waits on the strategy's work; with this strategy (a few hundred ns a step) that is not seen, so it is not measured here (note 001's D4, amended).
+
 The headline's stages: the feed (the sender's kernel, the path, the receive, sequencing, decoding, the book and the sink), the hand-off to the strategy and the strategy and risk checks, and the gateway and the venue (the ring, the session, the journal, the encode, TCP and the venue's read; the journal's time cannot split it, being the engine's pass's).
 
 | Path | Point | Feed p50 | p99 | Strategy and risk p50 | p99 | Gateway and venue p50 | p99 |

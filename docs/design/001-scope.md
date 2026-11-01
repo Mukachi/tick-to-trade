@@ -126,7 +126,10 @@ risk checks, is expected to set the figure (D6).
   hands book events through an SPSC ring to the strategy and risk thread, which submits through
   the gateway's application ring to its engine thread. Measured beside it: (B) feed, strategy and
   risk on one thread, no queue; (C) the strategy and risk as a consumer process of the feed
-  handler's publisher, the program `itchfh` unchanged. *Alternative:* A alone.
+  handler's publisher, the program `itchfh` unchanged. *Alternative:* A alone. (Amended
+  2026-11-01 by note 005: B is faster wherever measured, by the cost of A's ring, ~1 µs at p50 and
+  ~5 µs at p99.9 at 25k; A stays the default because its feed thread never waits on the strategy's
+  work, which this strategy, a few hundred ns a step, does not show: stated with the figures.)
 - **D5. The venue.** *Proposed (A):* the gateway's `order_venue`, unchanged but for the stamp:
   its own book, so passive orders at the best bid rest and are acknowledged. *Alternative (B):* a
   venue that fills against the feed's book: closer to a market, but an exchange simulator, out of

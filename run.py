@@ -237,6 +237,20 @@ def t2t_stage_rows(lf, runs):
 T2T_STAGE_HEAD = ["Path", "Point", "Feed p50", "p99", "Strategy and risk p50", "p99", "Gateway and venue p50", "p99"]
 
 
+def t2t_default(lf, runs):
+    """S6 (qualified): the default, A, against B, the same work on one thread."""
+    ts = t2t_by_path(runs).get("loopback")
+    if not ts:
+        return []
+    at = lambda name, f: t2t_lat(lf, [p["tick_to_trade"][f] for t in ts for p in t["points"] if p["name"] == name])
+    return [f"The default is A. B, the same work on the feed's thread, is faster at every point measured (loopback, 25k: p50 "
+            f"{at('B, journal C, 25k', 'p50_ns')} against {at('A, journal C, 25k', 'p50_ns')}, p99.9 {at('B, journal C, 25k', 'p999_ns')} "
+            f"against {at('A, journal C, 25k', 'p999_ns')}; over the open p50 {at('B, journal C, the open', 'p50_ns')} against "
+            f"{at('A, journal C, the open', 'p50_ns')}): that is the cost of A's ring between the threads with this strategy. A is kept "
+            "because its feed thread never waits on the strategy's work; with this strategy (a few hundred ns a step) that is not seen, "
+            "so it is not measured here (note 001's D4, amended).", ""]
+
+
 def t2t_open_items(lf, runs):
     """Open items stated with the figures they touch (docs/open.md)."""
     out = []
@@ -300,6 +314,7 @@ def t2t_section(lf, note, runs, root=None):
             + "; ranges over the runs of each path (each path a set of its own, at one commit: Conditions).", "",
             lf.table(T2T_HEAD, t2t_rows(lf, runs)), "",
             *t2t_open_items(lf, runs),
+            *t2t_default(lf, runs),
             "The headline's stages: the feed (the sender's kernel, the path, the receive, sequencing, decoding, the book and the "
             "sink), the hand-off to the strategy and the strategy and risk checks, and the gateway and the venue (the ring, the "
             "session, the journal, the encode, TCP and the venue's read; the journal's time cannot split it, being the engine's "

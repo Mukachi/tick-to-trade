@@ -1,6 +1,6 @@
 # 005 — Measurement
 
-**Status:** Built · **Updated:** 2026-11-01
+**Status:** Measured · **Updated:** 2026-11-01
 
 ## Proposal
 
@@ -122,7 +122,7 @@ and the venue in the card's far namespace first (the feed handler's `tools/card-
 - [x] `t2t_bench`: the points, the join, the run file; the measurement's cost
 - [x] `run.py`: the t2t set and its tables, the README block
 - [x] Shep: three runs a path; published (loopback at 60b7673, the card at 3ec0538: each path its own set)
-- [ ] Shep: review
+- [x] Shep: review
 
 ## Review
 
@@ -136,3 +136,4 @@ and the venue in the card's far namespace first (the feed handler's `tools/card-
 | 2026-11-01 | Agreed (building) | Loopback runs published (three at 60b7673: 20261101T112218Z, 115018Z, 121817Z; bench mode, clean): every point complete, every order joined, none out of order, S1 of note 004 held, no kernel drop. Headline (A, journal C, 25k) p50 22.0-22.2 µs, p99.9 84.4-86.5, max 119-122 µs; 10k p50 20.3-20.5, 50k 27.5, the open 20.8-20.9 (its max 401-418 µs is in the feed stage: the open's burst, the sender up to 86 µs late); B 0.8-1.1 µs below A at 25k (the hand-off), C 3.3-4.4 µs above (the publisher and the consumer process); journal A +70 µs at p50. Gateway and venue p50 rises with the pace (8.1-8.3, 11.1-11.5, 17.3-17.4 µs at 10k, 25k, 50k). Decided by Shep (A): journal A's 25k max (4.1, 4.2 and 77 ms, all in the gateway-and-venue stage) published with open item T4, parked; T3 closed per D5 (no kernel drop in bench mode in five runs). The card's runs next |
 | 2026-11-01 | Agreed (building) | The card's check run (`--quick`, bench mode) timed nothing: `order_venue` listened on loopback only, so the program in the main namespace never reached it in `itchfh-peer`, never logged on, and the risk refused every intent (no session). Fixed: `order_venue [address:]port` (fix-order-gateway af886e2, CI green; loopback by default), re-pinned; `t2t_bench` now skips a point whose program has not logged on or whose feed is not ready within 60 s, naming which (tested with a listener that never answers). The card runs need a commit other than the loopback set's (60b7673) |
 | 2026-11-01 | Built (runs published) | Decided by Shep (B): the card's runs their own set (`t2t_card`, 3ec0538), each set one commit; `run.py` refuses a run of the other path in a set. Card (busy polling 50): headline p50 53.9-55.6 µs (feed 22.7-23.5, gateway and venue 30.4-32.1), p99.9 116-123, max 163-192 µs; 10k 47.7-49.4, 50k 60.4-62.3, the open 48.9-49.8; no kernel drop. RESULTS gains the sender's lateness (S1) and the components' own figures beside (S6, read from their repositories' JSON at the pins), and states S3's agreement. **Against the Spec:** S1 met (three runs a path, every timed order joined, S1 of note 004 in every point); S2 met (the headline's stages on both paths, none out of order); S3 met (a clock read 33-35 ns, a stamp read 89-92 ns; with stamping off `check_hot_path` as note 004's S4); S4 met (T3 closed before the 50k figures); S5 met; S6 **not met as worded**: the default (A) is not justified by the alternatives, B being faster at every point measured (25k p50 20.9-21.2 against 22.0-22.2 µs, p99.9 79-82 against 84-87; the open 20.0-20.5 against 20.8-20.9), and note 001's D4 gave no reason for A: for Shep. Found: (1) the gateway-and-venue stage's p50 rises with the pace by ~9 µs from 10k to 50k on both paths (loopback 8.1 to 17.4, card 23.5 to 39.1) while the gateway's own order to ExecutionReport is flat (19 µs from 10k to 50k orders a second): not the gateway alone (the venue's answers, two a replace, and the answer-caused orders are what it lacks): for Shep. (2) The feed handler's own 25k max (5.6-5.8 ms every run, its open item) does not appear in our feed stage (max 23-33 µs at 25k), which has no publisher or consumer: a lead for that item |
+| 2026-11-01 | Measured | Reviewed by Shep (A, A): S6 qualified: A stays the default, RESULTS stating B's figures against it (the cost of A's ring, ~1 µs at p50 and ~5 µs at p99.9 at 25k on loopback) and why A is kept (its feed thread never waits on the strategy's work, not seen with this strategy, so not measured); note 001's D4 amended. The gateway-and-venue stage's rise with the pace parked as T5. Open items from this note: T3 closed, T4 and T5 parked |
