@@ -34,6 +34,9 @@ struct program_config {
     std::string instruments = "open-100.txt", limits = "limits.conf";
     // The gateway's tables, for the session's life (its note 007, D3): sized for the day.
     std::uint64_t max_orders = 2'000'000, max_exec_ids = 16'000'000, id_mb = 512;
+    // The gateway's store of sent messages (its note 004, amended): reserved for the
+    // day, or it reallocates and copies itself in one call past the reserve.
+    std::uint64_t store_mb = 2048, store_messages = 16'000'000;
     std::string block = "/ttt";             // control and monitoring
     std::string passed_log;                 // S1: the IDs the risk passed, written at exit (empty: not)
     std::uint64_t end_wait_ms = 5000;       // D8
@@ -109,6 +112,12 @@ inline bool parse_program(const std::string& text, const std::filesystem::path& 
         } else if (k == "id_mb") {
             if (!number(1, 65536)) return bad("id_mb: 1 to 65536");
             c.id_mb = x;
+        } else if (k == "store_mb") {
+            if (!number(1, 65536)) return bad("store_mb: 1 to 65536");
+            c.store_mb = x;
+        } else if (k == "store_messages") {
+            if (!number(1024, 1'000'000'000)) return bad("store_messages: 1024 to 10^9");
+            c.store_messages = x;
         } else if (k == "block") {
             if (v.size() < 2 || v[0] != '/' || v.find('/', 1) != std::string::npos) return bad("block: a shared-memory name (/name)");
             c.block = v;

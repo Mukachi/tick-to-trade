@@ -348,6 +348,8 @@ int main(int argc, char** argv) {
     sc.role = fx::session_role::initiator;
     sc.sender_comp_id = c.sender_comp_id;
     sc.target_comp_id = c.target_comp_id;
+    sc.store_bytes = static_cast<std::size_t>(c.store_mb) << 20;
+    sc.store_messages = c.store_messages;
     fx::engine_config ec;
     ec.port = c.venue_port;
     in_addr a{};

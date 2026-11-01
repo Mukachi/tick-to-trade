@@ -27,6 +27,13 @@ int main() {
               c.instruments == std::string(TTT_CONFIG_DIR) + "/open-100.txt" && c.sender_comp_id == "CLIENT",
           "config/ttt-loopback.conf read, its feed file with it, paths from its directory " + why);
     const std::string feed = "feed = feed-loopback.conf\n";
+    {
+        ttt::program_config x;
+        std::string w;
+        check(c.store_mb == 2048 && c.store_messages == 16'000'000 && parses(feed + "store_mb = 4096\nstore_messages = 32000000\n", w, x) &&
+                  x.store_mb == 4096 && x.store_messages == 32'000'000,
+              "the gateway's store reserved for the day by default (2 GB, 16M messages), and as given " + w);
+    }
     const struct {
         std::string text, expect;
     } bad[] = {
@@ -36,6 +43,7 @@ int main() {
         {feed + "engine_cpu = x\n", "line 2: engine_cpu: a CPU number"},
         {feed + "journal = B\n", "line 2: journal: A or C"},
         {feed + "block = ttt\n", "line 2: block: a shared-memory name (/name)"},
+        {feed + "store_mb = 0\n", "line 2: store_mb: 1 to 65536"},
         {"arrangement = A\n", "feed: the feed handler's configuration file is required"},
         {"feed = no-such.conf\n", "no-such.conf: cannot read"},
     };
