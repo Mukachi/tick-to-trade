@@ -98,6 +98,8 @@ allocation, and no system call but the reads and writes it is meant to make.
 - **Every timed order joined.** Each order in every published run is joined from four records,
   the sender's, the program's, the gateway's journal and the venue's, none missing, its stages in
   order.
+- **CI** on every push: x64, ThreadSanitizer, AddressSanitizer/UBSan and arm64. The whole-day
+  checks need the sample day and run here, not in CI.
 
 ## Findings
 
