@@ -181,6 +181,14 @@ def t2t_by_path(runs):
     return paths
 
 
+def t2t_lat(lf, values):
+    """As lf.rng, but a range reaching 1 ms is written in ms at both ends (journal A's maxima)."""
+    if max(values) < 1_000_000:
+        return lf.rng(values)
+    lo, hi = f"{min(values) / 1e6:,.1f}", f"{max(values) / 1e6:,.1f}"
+    return f"{lo} ms" if lo == hi else f"{lo}–{hi} ms"
+
+
 def t2t_rows(lf, runs, only=None):
     rows = []
     for path, ts in t2t_by_path(runs).items():
@@ -191,7 +199,7 @@ def t2t_rows(lf, runs, only=None):
             tt = [p["tick_to_trade"] for p in ps]
             rows.append([path, p0["name"], lf.rng([p["tick_to_trade"]["count"] for p in ps], lambda v: f"{v:,.0f}"),
                          lf.rng([100 * p["by_answer"] / p["orders"] for p in ps], lambda v: f"{v:.0f}%")]
-                        + [lf.rng([x[f] for x in tt]) for f in ("p50_ns", "p99_ns", "p999_ns", "max_ns")]
+                        + [t2t_lat(lf, [x[f] for x in tt]) for f in ("p50_ns", "p99_ns", "p999_ns", "max_ns")]
                         + [lf.rng([p["kernel_drops"] for p in ps], lambda v: f"{v:,.0f}")])
     return rows
 
@@ -216,6 +224,19 @@ def t2t_stage_rows(lf, runs):
 T2T_STAGE_HEAD = ["Path", "Point", "Feed p50", "p99", "Strategy and risk p50", "p99", "Gateway and venue p50", "p99"]
 
 
+def t2t_open_items(lf, runs):
+    """Open items stated with the figures they touch (docs/open.md)."""
+    out = []
+    for path, ts in t2t_by_path(runs).items():
+        for i, p0 in enumerate(ts[0]["points"]):
+            if p0["journal"] == "A" and p0["pace"] == 25_000:
+                ps = [t["points"][i] for t in ts]
+                out += [f"Journal A at 25k ({path}): its max, {t2t_lat(lf, [p['tick_to_trade']['max_ns'] for p in ps])} over the runs, "
+                        "is all in the gateway-and-venue stage, where the pipeline's `fdatasync` to ext4 is; its cause was not found "
+                        "(open item T4, parked: journal A is beside the default, not it).", ""]
+    return out
+
+
 def t2t_section(lf, note, runs):
     t0 = runs[0][1]["t2t"]
     cost = lambda k: lf.rng([d["t2t"][k]["p50_ns"] for _, d in runs])
@@ -232,6 +253,7 @@ def t2t_section(lf, note, runs):
             f"{cost('cost_timer_pair_alone')} ns (two clock reads and a stamp read an order). {len(runs)} runs; ranges over the runs "
             "of each path.", "",
             lf.table(T2T_HEAD, t2t_rows(lf, runs)), "",
+            *t2t_open_items(lf, runs),
             "The headline's stages: the feed (the sender's kernel, the path, the receive, sequencing, decoding, the book and the "
             "sink), the hand-off to the strategy and the strategy and risk checks, and the gateway and the venue (the ring, the "
             "session, the journal, the encode, TCP and the venue's read; the journal's time cannot split it, being the engine's "

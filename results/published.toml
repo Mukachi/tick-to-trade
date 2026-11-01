@@ -9,3 +9,11 @@ note = "003"
 runs = ["risk-dev-lnx01-20261031T174456Z.json",
         "risk-dev-lnx01-20261031T180106Z.json",
         "risk-dev-lnx01-20261031T185434Z.json"]
+
+# Note 005: tick to trade, loopback (the two runs of 31 Oct-1 Nov withheld: the
+# gateway's store reallocated, ~90 ms maxima; fixed at 60b7673).
+[t2t]
+note = "005"
+runs = ["t2t-loopback-dev-lnx01-20261101T112218Z.json",
+        "t2t-loopback-dev-lnx01-20261101T115018Z.json",
+        "t2t-loopback-dev-lnx01-20261101T121817Z.json"]

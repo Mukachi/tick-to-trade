@@ -1,0 +1,1725 @@
+{
+  "environment": {
+    "published": true,
+    "ok": true,
+    "bench_mode": {
+      "ok": true,
+      "failed": []
+    },
+    "machine": {
+      "vendor": "HP",
+      "product": "ProLiant DL380 Gen9",
+      "bios": "P89",
+      "bios_date": "08/29/2024"
+    },
+    "cpu": {
+      "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+      "microcode": "0xb000041",
+      "sockets": 2,
+      "cores_per_socket": 22,
+      "threads_per_core": 2,
+      "online": "0-87"
+    },
+    "numa": [
+      {
+        "node": 0,
+        "cpus": "0-21,44-65",
+        "memory_mb": 96299
+      },
+      {
+        "node": 1,
+        "cpus": "22-43,66-87",
+        "memory_mb": 92601
+      }
+    ],
+    "kernel": {
+      "release": "7.0.0-38-generic",
+      "version": "#38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026",
+      "cmdline": "BOOT_IMAGE=/boot/vmlinuz-7.0.0-38-generic root=UUID=81afe94c-4ca4-4d8a-b704-86099a14f84a ro nohz_full=2-21,46-65 rcu_nocbs=2-21,46-65 isolcpus=managed_irq,domain,2-21,46-65 crashkernel=2G-4G:320M,4G-32G:512M,32G-64G:1024M,64G-128G:2048M,128G-:4096M",
+      "thp": "madvise",
+      "numa_balancing": "0",
+      "perf_event_paranoid": "2",
+      "vulnerabilities": {
+        "gather_data_sampling": "Not affected",
+        "ghostwrite": "Not affected",
+        "indirect_target_selection": "Not affected",
+        "itlb_multihit": "KVM: Mitigation: Split huge pages",
+        "l1tf": "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
+        "mds": "Mitigation: Clear CPU buffers; SMT vulnerable",
+        "meltdown": "Mitigation: PTI",
+        "mmio_stale_data": "Mitigation: Clear CPU buffers; SMT vulnerable",
+        "old_microcode": "Not affected",
+        "reg_file_data_sampling": "Not affected",
+        "retbleed": "Not affected",
+        "spec_rstack_overflow": "Not affected",
+        "spec_store_bypass": "Mitigation: Speculative Store Bypass disabled via prctl",
+        "spectre_v1": "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
+        "spectre_v2": "Mitigation: Retpolines; IBPB: conditional; IBRS_FW; STIBP: conditional; RSB filling; PBRSB-eIBRS: Not affected; BHI: Not affected",
+        "srbds": "Not affected",
+        "tsa": "Not affected",
+        "tsx_async_abort": "Mitigation: Clear CPU buffers; SMT vulnerable",
+        "vmscape": "Mitigation: IBPB before exit to userspace"
+      }
+    },
+    "power": {
+      "governor": "performance",
+      "turbo": true,
+      "idle_states_enabled": ["C1", "C1E", "C3", "C6", "POLL"],
+      "uncore_khz": [
+        {
+          "socket": 0,
+          "min": 2800000,
+          "max": 2800000
+        },
+        {
+          "socket": 1,
+          "min": 2800000,
+          "max": 2800000
+        }
+      ]
+    },
+    "placement": {
+      "fence": "0-1,22-45,66-87",
+      "reserved": "2-21,46-65",
+      "cgroup": "/bench.slice/run-p16816-i185249.scope",
+      "affinity": "0-87",
+      "memory_policy": "bind 0"
+    },
+    "build": {
+      "commit": "60b76730171f4f1a0dd990d84ddd73390c27c679",
+      "clean": true,
+      "compiler": "gcc 15.2.0",
+      "build_type": "Release",
+      "flags": " -O3 -DNDEBUG -Wall -Wextra -Wpedantic -Werror -march=x86-64-v3"
+    },
+    "run": {
+      "program": "t2t_bench",
+      "args": [],
+      "start_utc": "2026-11-01T12:18:17Z"
+    }
+  },
+  "noise": {
+    "threshold_ns": 999.7928865433261,
+    "seconds_per_cpu": 1.9999999544688654,
+    "cpus": [
+      {
+        "cpu": 2,
+        "ok": true,
+        "stopped_fraction": 0.00013095830881884845,
+        "stops": 16,
+        "stops_per_s": 8.000000182124543,
+        "by_class": {
+          "1-10us": 0,
+          "10-100us": 16,
+          "100us-1ms": 0,
+          "over_1ms": 0
+        },
+        "longest_ns": 16985.102274621346,
+        "iterations": 271641180,
+        "iteration_min_ns": 5.460862375293543,
+        "overflow": false,
+        "interrupts": {},
+        "softirqs": {},
+        "involuntary_switches": 0,
+        "stop_lengths": {
+          "sub_bucket_bits": 10,
+          "max_bits": 40,
+          "count": 16,
+          "overflow": 0,
+          "min_ns": 15787.35312697363,
+          "max_ns": 16985.102274621346,
+          "percentiles_ns": {
+            "p50": null,
+            "p90": null,
+            "p99": null,
+            "p999": null,
+            "p9999": null,
+            "p99999": null
+          },
+          "buckets": [
+            [34751, 2],
+            [34815, 2],
+            [34879, 3],
+            [34943, 1],
+            [36863, 1],
+            [37119, 1],
+            [37183, 3],
+            [37247, 1],
+            [37311, 1],
+            [37375, 1]
+          ]
+        }
+      },
+      {
+        "cpu": 3,
+        "ok": true,
+        "stopped_fraction": 0,
+        "stops": 0,
+        "stops_per_s": 0,
+        "by_class": {
+          "1-10us": 0,
+          "10-100us": 0,
+          "100us-1ms": 0,
+          "over_1ms": 0
+        },
+        "longest_ns": 0,
+        "iterations": 271685336,
+        "iteration_min_ns": 5.460862375293543,
+        "overflow": false,
+        "interrupts": {},
+        "softirqs": {},
+        "involuntary_switches": 0,
+        "stop_lengths": {
+          "sub_bucket_bits": 10,
+          "max_bits": 40,
+          "count": 0,
+          "overflow": 0,
+          "min_ns": 0,
+          "max_ns": 0,
+          "percentiles_ns": {
+            "p50": null,
+            "p90": null,
+            "p99": null,
+            "p999": null,
+            "p9999": null,
+            "p99999": null
+          },
+          "buckets": []
+        }
+      },
+      {
+        "cpu": 4,
+        "ok": true,
+        "stopped_fraction": 1.3397315999050988e-06,
+        "stops": 1,
+        "stops_per_s": 0.5000000113827839,
+        "by_class": {
+          "1-10us": 1,
+          "10-100us": 0,
+          "100us-1ms": 0,
+          "over_1ms": 0
+        },
+        "longest_ns": 2679.463138810698,
+        "iterations": 271684927,
+        "iteration_min_ns": 5.460862375293543,
+        "overflow": false,
+        "interrupts": {
+          "CAL": 1
+        },
+        "softirqs": {},
+        "involuntary_switches": 0,
+        "stop_lengths": {
+          "sub_bucket_bits": 10,
+          "max_bits": 40,
+          "count": 1,
+          "overflow": 0,
+          "min_ns": 2679.463138810698,
+          "max_ns": 2679.463138810698,
+          "percentiles_ns": {
+            "p50": null,
+            "p90": null,
+            "p99": null,
+            "p999": null,
+            "p9999": null,
+            "p99999": null
+          },
+          "buckets": [
+            [5895, 1]
+          ]
+        }
+      }
+    ]
+  },
+  "clock": {
+    "ok": true,
+    "source": "rdtsc",
+    "invariant_tsc": true,
+    "kernel_clocksource": "tsc",
+    "ticks_per_ns": 2.1974551225263124,
+    "calibration_spread_ppm": 0.020593649822836534,
+    "overhead": {
+      "cpu": 2,
+      "samples": 1000000,
+      "warmup_discarded": 100000,
+      "p50_ns": 16.382587125880626,
+      "p99_ns": 17.292730855096217,
+      "p999_ns": 17.292730855096217,
+      "max_ns": 17.292730855096217
+    },
+    "cross_cpu": [
+      {
+        "a": 0,
+        "b": 1,
+        "theta_lo_ns": -102.84624140136171,
+        "theta_hi_ns": 89.19408546312786,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 2,
+        "theta_lo_ns": -93.7448041092058,
+        "theta_hi_ns": 103.7563851305773,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 3,
+        "theta_lo_ns": -87.37379800469668,
+        "theta_hi_ns": 79.18250444175636,
+        "gain_hi_ticks": -4,
+        "gain_lo_ticks": -6,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 4,
+        "theta_lo_ns": -88.28394173391227,
+        "theta_hi_ns": 64.62020477430691,
+        "gain_hi_ticks": -4,
+        "gain_lo_ticks": -4,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 5,
+        "theta_lo_ns": -93.7448041092058,
+        "theta_hi_ns": 84.64336681704991,
+        "gain_hi_ticks": -22,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 6,
+        "theta_lo_ns": -89.19408546312786,
+        "theta_hi_ns": 93.7448041092058,
+        "gain_hi_ticks": -18,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 7,
+        "theta_lo_ns": -66.4404922327381,
+        "theta_hi_ns": 77.36221698332518,
+        "gain_hi_ticks": -14,
+        "gain_lo_ticks": -10,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 8,
+        "theta_lo_ns": -69.17092342038487,
+        "theta_hi_ns": 96.47523529685257,
+        "gain_hi_ticks": -12,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 9,
+        "theta_lo_ns": -73.72164206646282,
+        "theta_hi_ns": 67.35063596195369,
+        "gain_hi_ticks": -2,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 10,
+        "theta_lo_ns": -77.36221698332518,
+        "theta_hi_ns": 68.26077969116928,
+        "gain_hi_ticks": -12,
+        "gain_lo_ticks": -12,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 11,
+        "theta_lo_ns": -73.72164206646282,
+        "theta_hi_ns": 65.5303485035225,
+        "gain_hi_ticks": -34,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 12,
+        "theta_lo_ns": -68.26077969116928,
+        "theta_hi_ns": 92.83466037999021,
+        "gain_hi_ticks": -2,
+        "gain_lo_ticks": -8,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 13,
+        "theta_lo_ns": -85.5535105462655,
+        "theta_hi_ns": 76.45207325410959,
+        "gain_hi_ticks": -14,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 14,
+        "theta_lo_ns": -91.92451665077462,
+        "theta_hi_ns": 78.27236071254077,
+        "gain_hi_ticks": -22,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 15,
+        "theta_lo_ns": -86.46365427548109,
+        "theta_hi_ns": 81.91293562940314,
+        "gain_hi_ticks": -16,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 16,
+        "theta_lo_ns": -92.83466037999021,
+        "theta_hi_ns": 89.19408546312786,
+        "gain_hi_ticks": -2,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 17,
+        "theta_lo_ns": -78.27236071254077,
+        "theta_hi_ns": 62.79991731587574,
+        "gain_hi_ticks": -14,
+        "gain_lo_ticks": -10,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 18,
+        "theta_lo_ns": -85.5535105462655,
+        "theta_hi_ns": 80.09264817097196,
+        "gain_hi_ticks": -12,
+        "gain_lo_ticks": -2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 19,
+        "theta_lo_ns": -85.5535105462655,
+        "theta_hi_ns": 75.541929524894,
+        "gain_hi_ticks": -18,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 20,
+        "theta_lo_ns": -88.28394173391227,
+        "theta_hi_ns": 78.27236071254077,
+        "gain_hi_ticks": -28,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 21,
+        "theta_lo_ns": -82.82307935861873,
+        "theta_hi_ns": 84.64336681704991,
+        "gain_hi_ticks": -10,
+        "gain_lo_ticks": -6,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 22,
+        "theta_lo_ns": -196.13597364595972,
+        "theta_hi_ns": 231.63157908536775,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 23,
+        "theta_lo_ns": -177.47802719704012,
+        "theta_hi_ns": 215.70406382409493,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 24,
+        "theta_lo_ns": -185.21424889537263,
+        "theta_hi_ns": 187.4896082184116,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 1,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 25,
+        "theta_lo_ns": -177.47802719704012,
+        "theta_hi_ns": 182.93888957233366,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 26,
+        "theta_lo_ns": -199.3214766982143,
+        "theta_hi_ns": 234.81708213762232,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -1,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 27,
+        "theta_lo_ns": -194.77075805213633,
+        "theta_hi_ns": 210.69827331340917,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 28,
+        "theta_lo_ns": -200.6866922920377,
+        "theta_hi_ns": 226.1707167100742,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 29,
+        "theta_lo_ns": -176.56788346782454,
+        "theta_hi_ns": 206.60262653193902,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 30,
+        "theta_lo_ns": -177.47802719704012,
+        "theta_hi_ns": 182.93888957233366,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 31,
+        "theta_lo_ns": -201.14176415664548,
+        "theta_hi_ns": 207.0576983965468,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 32,
+        "theta_lo_ns": -174.29252414478555,
+        "theta_hi_ns": 182.93888957233366,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 33,
+        "theta_lo_ns": -189.7649675414506,
+        "theta_hi_ns": 205.69248280272342,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 1,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 34,
+        "theta_lo_ns": -189.30989567684279,
+        "theta_hi_ns": 222.98521365781963,
+        "gain_hi_ticks": -1,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 35,
+        "theta_lo_ns": -181.11860211390248,
+        "theta_hi_ns": 200.6866922920377,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 1,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 36,
+        "theta_lo_ns": -197.50118923978312,
+        "theta_hi_ns": 228.44607603311317,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 37,
+        "theta_lo_ns": -190.67511127066618,
+        "theta_hi_ns": 192.04032686448957,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 38,
+        "theta_lo_ns": -197.04611737517533,
+        "theta_hi_ns": 199.7765485628221,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -1,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 39,
+        "theta_lo_ns": -182.48381770772588,
+        "theta_hi_ns": 208.877985854978,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 40,
+        "theta_lo_ns": -187.4896082184116,
+        "theta_hi_ns": 227.5359323038976,
+        "gain_hi_ticks": 2,
+        "gain_lo_ticks": 3,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 41,
+        "theta_lo_ns": -187.4896082184116,
+        "theta_hi_ns": 186.12439262458824,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 42,
+        "theta_lo_ns": -200.6866922920377,
+        "theta_hi_ns": 208.4229139903702,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 1,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 43,
+        "theta_lo_ns": -193.40554245831296,
+        "theta_hi_ns": 216.6142075533105,
+        "gain_hi_ticks": 1,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 44,
+        "theta_lo_ns": -19.113018313527398,
+        "theta_hi_ns": 17.292730855096217,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": false
+      },
+      {
+        "a": 0,
+        "b": 45,
+        "theta_lo_ns": -80.09264817097196,
+        "theta_hi_ns": 60.97962985744456,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 46,
+        "theta_lo_ns": -92.83466037999021,
+        "theta_hi_ns": 60.97962985744456,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 47,
+        "theta_lo_ns": -98.29552275528376,
+        "theta_hi_ns": 73.72164206646282,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -10,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 48,
+        "theta_lo_ns": -94.65494783842139,
+        "theta_hi_ns": 104.66652885979289,
+        "gain_hi_ticks": -4,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 49,
+        "theta_lo_ns": -80.09264817097196,
+        "theta_hi_ns": 73.72164206646282,
+        "gain_hi_ticks": -28,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 50,
+        "theta_lo_ns": -91.92451665077462,
+        "theta_hi_ns": 101.93609767214612,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 51,
+        "theta_lo_ns": -67.35063596195369,
+        "theta_hi_ns": 83.73322308783432,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -8,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 52,
+        "theta_lo_ns": -69.17092342038487,
+        "theta_hi_ns": 66.4404922327381,
+        "gain_hi_ticks": -16,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 53,
+        "theta_lo_ns": -74.63178579567841,
+        "theta_hi_ns": 66.4404922327381,
+        "gain_hi_ticks": -4,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 54,
+        "theta_lo_ns": -82.82307935861873,
+        "theta_hi_ns": 103.7563851305773,
+        "gain_hi_ticks": -6,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 55,
+        "theta_lo_ns": -81.00279190018755,
+        "theta_hi_ns": 69.17092342038487,
+        "gain_hi_ticks": -30,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 56,
+        "theta_lo_ns": -75.541929524894,
+        "theta_hi_ns": 92.83466037999021,
+        "gain_hi_ticks": -2,
+        "gain_lo_ticks": -14,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 57,
+        "theta_lo_ns": -93.7448041092058,
+        "theta_hi_ns": 83.73322308783432,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 58,
+        "theta_lo_ns": -89.19408546312786,
+        "theta_hi_ns": 70.99121087881605,
+        "gain_hi_ticks": -24,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 59,
+        "theta_lo_ns": -91.92451665077462,
+        "theta_hi_ns": 80.09264817097196,
+        "gain_hi_ticks": -18,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 60,
+        "theta_lo_ns": -92.83466037999021,
+        "theta_hi_ns": 80.09264817097196,
+        "gain_hi_ticks": -6,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 61,
+        "theta_lo_ns": -92.83466037999021,
+        "theta_hi_ns": 69.17092342038487,
+        "gain_hi_ticks": -26,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 62,
+        "theta_lo_ns": -84.64336681704991,
+        "theta_hi_ns": 71.90135460803164,
+        "gain_hi_ticks": -4,
+        "gain_lo_ticks": -2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 63,
+        "theta_lo_ns": -94.65494783842139,
+        "theta_hi_ns": 82.82307935861873,
+        "gain_hi_ticks": 2,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 64,
+        "theta_lo_ns": -92.83466037999021,
+        "theta_hi_ns": 72.81149833724723,
+        "gain_hi_ticks": -32,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 65,
+        "theta_lo_ns": -89.19408546312786,
+        "theta_hi_ns": 84.64336681704991,
+        "gain_hi_ticks": -2,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 66,
+        "theta_lo_ns": -199.7765485628221,
+        "theta_hi_ns": 178.38817092625573,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 67,
+        "theta_lo_ns": -218.4344950117417,
+        "theta_hi_ns": 211.60841704262475,
+        "gain_hi_ticks": -2,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 68,
+        "theta_lo_ns": -199.7765485628221,
+        "theta_hi_ns": 232.08665094997554,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 3,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 69,
+        "theta_lo_ns": -187.4896082184116,
+        "theta_hi_ns": 193.86061432292075,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -3,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 70,
+        "theta_lo_ns": -181.11860211390248,
+        "theta_hi_ns": 221.61999806399626,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 71,
+        "theta_lo_ns": -180.6635302492947,
+        "theta_hi_ns": 192.04032686448957,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 72,
+        "theta_lo_ns": -179.2983146554713,
+        "theta_hi_ns": 191.58525499988178,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 73,
+        "theta_lo_ns": -182.93888957233366,
+        "theta_hi_ns": 196.5910455105675,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 74,
+        "theta_lo_ns": -201.14176415664548,
+        "theta_hi_ns": 229.35621976232878,
+        "gain_hi_ticks": -4,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 75,
+        "theta_lo_ns": -174.29252414478555,
+        "theta_hi_ns": 209.33305771958578,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -6,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 76,
+        "theta_lo_ns": -191.58525499988178,
+        "theta_hi_ns": 222.98521365781963,
+        "gain_hi_ticks": 1,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 77,
+        "theta_lo_ns": -206.60262653193902,
+        "theta_hi_ns": 207.5127702611546,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 78,
+        "theta_lo_ns": -182.93888957233366,
+        "theta_hi_ns": 190.67511127066618,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 79,
+        "theta_lo_ns": -191.58525499988178,
+        "theta_hi_ns": 197.9562611043909,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 80,
+        "theta_lo_ns": -188.854823812235,
+        "theta_hi_ns": 198.8664048336065,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 81,
+        "theta_lo_ns": -191.13018313527397,
+        "theta_hi_ns": 217.5243512825261,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 82,
+        "theta_lo_ns": -194.31568618752854,
+        "theta_hi_ns": 213.42870450105593,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": -2,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 83,
+        "theta_lo_ns": -184.75917703076485,
+        "theta_hi_ns": 191.13018313527397,
+        "gain_hi_ticks": -1,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 84,
+        "theta_lo_ns": -185.66932075998042,
+        "theta_hi_ns": 227.5359323038976,
+        "gain_hi_ticks": 2,
+        "gain_lo_ticks": 5,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 85,
+        "theta_lo_ns": -176.11281160321673,
+        "theta_hi_ns": 207.5127702611546,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 86,
+        "theta_lo_ns": -192.95047059370515,
+        "theta_hi_ns": 202.50697975046884,
+        "gain_hi_ticks": -1,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      },
+      {
+        "a": 0,
+        "b": 87,
+        "theta_lo_ns": -188.3997519476272,
+        "theta_hi_ns": 192.95047059370515,
+        "gain_hi_ticks": 0,
+        "gain_lo_ticks": 0,
+        "round_trips": 100000,
+        "warmup_discarded": 1000,
+        "converged": true
+      }
+    ]
+  },
+  "t2t": {
+    "path": "loopback",
+    "busy_read": 0,
+    "busy_poll": 0,
+    "source": "01302020.NASDAQ_ITCH50.gz",
+    "messages": 50000000,
+    "instruments": 100,
+    "warmup_discarded": 1000,
+    "cpus": "feed 2, strategy 3, engine 4, sender 5, venue 6, pipeline journal 7 and sender 8",
+    "itch_feed_handler_commit": "36d7a92a6bcab383320697b8f072bf83bbfe4118",
+    "fix_order_gateway_commit": "4c1a05b2d1558156a04ba6f51a8a238c59bb3a8f",
+    "lockfree_ipc_commit": "c733131c95198f08cc9032b7ae105cfaf6f7cd88",
+    "cost_clock_read": {
+      "count": 1000000,
+      "p50_ns": 33,
+      "p99_ns": 34,
+      "p999_ns": 40,
+      "max_ns": 15543
+    },
+    "cost_stamp_read": {
+      "count": 1000000,
+      "p50_ns": 89,
+      "p99_ns": 395,
+      "p999_ns": 473,
+      "max_ns": 536
+    },
+    "cost_timer_pair_alone": {
+      "count": 1000000,
+      "p50_ns": 16,
+      "p99_ns": 17,
+      "p999_ns": 17,
+      "max_ns": 17
+    },
+    "points": [
+      {
+        "name": "A, journal C, 10k",
+        "arrangement": "A",
+        "journal": "C",
+        "pace": 10000,
+        "first_message": 1,
+        "last_message": 50000000,
+        "complete": true,
+        "s1": true,
+        "orders": 922810,
+        "by_event": 790246,
+        "by_answer": 132564,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 18073,
+        "sender_late_over_10us": 1,
+        "sender_packets": 1124952,
+        "summary": "ttt: arrangement A; 4717444 book events; 957242 intents (29277 new, 922902 replace, 5063 cancel); 922810 passed, 29369 refused; 927971 answers, 0 unmapped, 1 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out\nttt: the gateway's last refusal: order already finished",
+        "tick_to_trade": {
+          "count": 789246,
+          "p50_ns": 20277,
+          "p99_ns": 66467,
+          "p999_ns": 83594,
+          "max_ns": 123298
+        },
+        "stage_feed": {
+          "count": 789246,
+          "p50_ns": 8978,
+          "p99_ns": 17041,
+          "p999_ns": 22930,
+          "max_ns": 31484
+        },
+        "stage_strategy": {
+          "count": 789246,
+          "p50_ns": 497,
+          "p99_ns": 669,
+          "p999_ns": 1962,
+          "max_ns": 5021
+        },
+        "stage_gateway_venue": {
+          "count": 789246,
+          "p50_ns": 8077,
+          "p99_ns": 55343,
+          "p999_ns": 71145,
+          "max_ns": 106272
+        }
+      },
+      {
+        "name": "A, journal C, 25k",
+        "arrangement": "A",
+        "journal": "C",
+        "pace": 25000,
+        "first_message": 1,
+        "last_message": 50000000,
+        "complete": true,
+        "s1": true,
+        "orders": 869395,
+        "by_event": 700579,
+        "by_answer": 168816,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 3503,
+        "sender_late_over_10us": 0,
+        "sender_packets": 1124952,
+        "summary": "ttt: arrangement A; 4717444 book events; 903170 intents (29212 new, 868960 replace, 4998 cancel); 869395 passed, 28777 refused; 874491 answers, 0 unmapped, 1 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out\nttt: the gateway's last refusal: order already finished",
+        "tick_to_trade": {
+          "count": 699579,
+          "p50_ns": 22191,
+          "p99_ns": 68117,
+          "p999_ns": 86534,
+          "max_ns": 121642
+        },
+        "stage_feed": {
+          "count": 699579,
+          "p50_ns": 9043,
+          "p99_ns": 16757,
+          "p999_ns": 22000,
+          "max_ns": 29502
+        },
+        "stage_strategy": {
+          "count": 699579,
+          "p50_ns": 440,
+          "p99_ns": 1178,
+          "p999_ns": 2916,
+          "max_ns": 9591
+        },
+        "stage_gateway_venue": {
+          "count": 699579,
+          "p50_ns": 11495,
+          "p99_ns": 57007,
+          "p999_ns": 74375,
+          "max_ns": 108384
+        }
+      },
+      {
+        "name": "A, journal C, 50k",
+        "arrangement": "A",
+        "journal": "C",
+        "pace": 50000,
+        "first_message": 1,
+        "last_message": 50000000,
+        "complete": true,
+        "s1": true,
+        "orders": 785003,
+        "by_event": 592259,
+        "by_answer": 192744,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 10775,
+        "sender_late_over_10us": 1,
+        "sender_packets": 1124952,
+        "summary": "ttt: arrangement A; 4717444 book events; 817777 intents (29026 new, 783939 replace, 4812 cancel); 785003 passed, 27962 refused; 789913 answers, 0 unmapped, 0 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out",
+        "tick_to_trade": {
+          "count": 591259,
+          "p50_ns": 27498,
+          "p99_ns": 75347,
+          "p999_ns": 95188,
+          "max_ns": 142950
+        },
+        "stage_feed": {
+          "count": 591259,
+          "p50_ns": 9268,
+          "p99_ns": 16882,
+          "p999_ns": 21852,
+          "max_ns": 74697
+        },
+        "stage_strategy": {
+          "count": 591259,
+          "p50_ns": 430,
+          "p99_ns": 1823,
+          "p999_ns": 4781,
+          "max_ns": 14321
+        },
+        "stage_gateway_venue": {
+          "count": 591259,
+          "p50_ns": 17341,
+          "p99_ns": 64315,
+          "p999_ns": 83506,
+          "max_ns": 130255
+        }
+      },
+      {
+        "name": "A, journal C, the open",
+        "arrangement": "A",
+        "journal": "C",
+        "pace": 0,
+        "first_message": 13406693,
+        "last_message": 23367694,
+        "complete": true,
+        "s1": true,
+        "orders": 412339,
+        "by_event": 154537,
+        "by_answer": 105856,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 82008,
+        "sender_late_over_10us": 577,
+        "sender_packets": 537722,
+        "summary": "ttt: arrangement A; 2179337 book events; 438062 intents (22138 new, 411110 replace, 4814 cancel); 412339 passed, 20909 refused; 417251 answers, 0 unmapped, 0 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out",
+        "tick_to_trade": {
+          "count": 153537,
+          "p50_ns": 20941,
+          "p99_ns": 57376,
+          "p999_ns": 77480,
+          "max_ns": 400562
+        },
+        "stage_feed": {
+          "count": 153537,
+          "p50_ns": 10308,
+          "p99_ns": 18745,
+          "p999_ns": 25653,
+          "max_ns": 392384
+        },
+        "stage_strategy": {
+          "count": 153537,
+          "p50_ns": 499,
+          "p99_ns": 639,
+          "p999_ns": 1726,
+          "max_ns": 3290
+        },
+        "stage_gateway_venue": {
+          "count": 153537,
+          "p50_ns": 8052,
+          "p99_ns": 44091,
+          "p999_ns": 62991,
+          "max_ns": 95327
+        }
+      },
+      {
+        "name": "B, journal C, 25k",
+        "arrangement": "B",
+        "journal": "C",
+        "pace": 25000,
+        "first_message": 1,
+        "last_message": 50000000,
+        "complete": true,
+        "s1": true,
+        "orders": 867211,
+        "by_event": 697455,
+        "by_answer": 169756,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 3449,
+        "sender_late_over_10us": 0,
+        "sender_packets": 1124952,
+        "summary": "ttt: arrangement B; 4717444 book events; 900917 intents (29210 new, 866711 replace, 4996 cancel); 867211 passed, 28710 refused; 872305 answers, 0 unmapped, 97 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out\nttt: the gateway's last refusal: order already finished",
+        "tick_to_trade": {
+          "count": 696455,
+          "p50_ns": 21020,
+          "p99_ns": 62618,
+          "p999_ns": 80461,
+          "max_ns": 122711
+        },
+        "stage_feed": {
+          "count": 696455,
+          "p50_ns": 9166,
+          "p99_ns": 17011,
+          "p999_ns": 22099,
+          "max_ns": 29814
+        },
+        "stage_strategy": {
+          "count": 696455,
+          "p50_ns": 234,
+          "p99_ns": 379,
+          "p999_ns": 505,
+          "max_ns": 1911
+        },
+        "stage_gateway_venue": {
+          "count": 696455,
+          "p50_ns": 10393,
+          "p99_ns": 50750,
+          "p999_ns": 67628,
+          "max_ns": 105199
+        }
+      },
+      {
+        "name": "B, journal C, the open",
+        "arrangement": "B",
+        "journal": "C",
+        "pace": 0,
+        "first_message": 13406693,
+        "last_message": 23367694,
+        "complete": true,
+        "s1": true,
+        "orders": 410569,
+        "by_event": 154522,
+        "by_answer": 105661,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 70590,
+        "sender_late_over_10us": 407,
+        "sender_packets": 537722,
+        "summary": "ttt: arrangement B; 2179337 book events; 436275 intents (22127 new, 409345 replace, 4803 cancel); 410569 passed, 20903 refused; 415470 answers, 0 unmapped, 98 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out\nttt: the gateway's last refusal: order already finished",
+        "tick_to_trade": {
+          "count": 153522,
+          "p50_ns": 20536,
+          "p99_ns": 56026,
+          "p999_ns": 76130,
+          "max_ns": 401181
+        },
+        "stage_feed": {
+          "count": 153522,
+          "p50_ns": 10235,
+          "p99_ns": 18485,
+          "p999_ns": 25477,
+          "max_ns": 393479
+        },
+        "stage_strategy": {
+          "count": 153522,
+          "p50_ns": 239,
+          "p99_ns": 415,
+          "p999_ns": 541,
+          "max_ns": 1689
+        },
+        "stage_gateway_venue": {
+          "count": 153522,
+          "p50_ns": 8211,
+          "p99_ns": 42211,
+          "p999_ns": 60707,
+          "max_ns": 93435
+        }
+      },
+      {
+        "name": "C, journal C, 25k",
+        "arrangement": "C",
+        "journal": "C",
+        "pace": 25000,
+        "first_message": 1,
+        "last_message": 50000000,
+        "complete": true,
+        "s1": true,
+        "orders": 870736,
+        "by_event": 701184,
+        "by_answer": 169552,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 3648,
+        "sender_late_over_10us": 0,
+        "sender_packets": 1124952,
+        "summary": "ttt: arrangement C; 4717344 book events; 904427 intents (29219 new, 870301 replace, 4907 cancel); 870736 passed, 28784 refused; 875741 answers, 0 unmapped, 0 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out",
+        "tick_to_trade": {
+          "count": 700184,
+          "p50_ns": 25464,
+          "p99_ns": 67007,
+          "p999_ns": 86063,
+          "max_ns": 131701
+        },
+        "stage_feed": {
+          "count": 700184,
+          "p50_ns": 11433,
+          "p99_ns": 21284,
+          "p999_ns": 26460,
+          "max_ns": 40018
+        },
+        "stage_strategy": {
+          "count": 700184,
+          "p50_ns": 258,
+          "p99_ns": 411,
+          "p999_ns": 703,
+          "max_ns": 2558
+        },
+        "stage_gateway_venue": {
+          "count": 700184,
+          "p50_ns": 10995,
+          "p99_ns": 53922,
+          "p999_ns": 72186,
+          "max_ns": 115656
+        }
+      },
+      {
+        "name": "C, journal C, the open",
+        "arrangement": "C",
+        "journal": "C",
+        "pace": 0,
+        "first_message": 13406693,
+        "last_message": 23367694,
+        "complete": true,
+        "s1": true,
+        "orders": 413340,
+        "by_event": 154557,
+        "by_answer": 105834,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 72779,
+        "sender_late_over_10us": 510,
+        "sender_packets": 537722,
+        "summary": "ttt: arrangement C; 2179337 book events; 439064 intents (22140 new, 412108 replace, 4816 cancel); 413340 passed, 20908 refused; 418254 answers, 0 unmapped, 0 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out",
+        "tick_to_trade": {
+          "count": 153557,
+          "p50_ns": 24312,
+          "p99_ns": 57836,
+          "p999_ns": 77654,
+          "max_ns": 467051
+        },
+        "stage_feed": {
+          "count": 153557,
+          "p50_ns": 12659,
+          "p99_ns": 23369,
+          "p999_ns": 34135,
+          "max_ns": 459921
+        },
+        "stage_strategy": {
+          "count": 153557,
+          "p50_ns": 299,
+          "p99_ns": 444,
+          "p999_ns": 1662,
+          "max_ns": 2519
+        },
+        "stage_gateway_venue": {
+          "count": 153557,
+          "p50_ns": 7961,
+          "p99_ns": 41827,
+          "p999_ns": 60891,
+          "max_ns": 83251
+        }
+      },
+      {
+        "name": "A, journal A, 25k",
+        "arrangement": "A",
+        "journal": "A",
+        "pace": 25000,
+        "first_message": 1,
+        "last_message": 50000000,
+        "complete": true,
+        "s1": true,
+        "orders": 739878,
+        "by_event": 539902,
+        "by_answer": 199976,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 13451,
+        "sender_late_over_10us": 2,
+        "sender_packets": 1124952,
+        "summary": "ttt: arrangement A; 4717444 book events; 772010 intents (28785 new, 738654 replace, 4571 cancel); 739878 passed, 27561 refused; 744547 answers, 0 unmapped, 0 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out",
+        "tick_to_trade": {
+          "count": 538902,
+          "p50_ns": 92303,
+          "p99_ns": 142716,
+          "p999_ns": 174606,
+          "max_ns": 77099437
+        },
+        "stage_feed": {
+          "count": 538902,
+          "p50_ns": 9877,
+          "p99_ns": 17766,
+          "p999_ns": 23345,
+          "max_ns": 32116
+        },
+        "stage_strategy": {
+          "count": 538902,
+          "p50_ns": 500,
+          "p99_ns": 1166,
+          "p999_ns": 2933,
+          "max_ns": 10509
+        },
+        "stage_gateway_venue": {
+          "count": 538902,
+          "p50_ns": 81758,
+          "p99_ns": 130907,
+          "p999_ns": 161830,
+          "max_ns": 77087172
+        }
+      },
+      {
+        "name": "A, journal A, the open",
+        "arrangement": "A",
+        "journal": "A",
+        "pace": 0,
+        "first_message": 13406693,
+        "last_message": 23367694,
+        "complete": true,
+        "s1": true,
+        "orders": 351780,
+        "by_event": 152860,
+        "by_answer": 98796,
+        "unjoined": 0,
+        "stage_mismatch": 0,
+        "kernel_drops": 0,
+        "sender_late_max_ns": 86053,
+        "sender_late_over_10us": 754,
+        "sender_packets": 537722,
+        "summary": "ttt: arrangement A; 2179337 book events; 376881 intents (21728 new, 350749 replace, 4404 cancel); 351780 passed, 20697 refused; 356282 answers, 0 unmapped, 0 refused by the gateway; 0 fills; kill engaged 1 times, 98 kill cancels; every order answered; logged out",
+        "tick_to_trade": {
+          "count": 151860,
+          "p50_ns": 75715,
+          "p99_ns": 136745,
+          "p999_ns": 180351,
+          "max_ns": 1778082
+        },
+        "stage_feed": {
+          "count": 151860,
+          "p50_ns": 10842,
+          "p99_ns": 19391,
+          "p999_ns": 26672,
+          "max_ns": 396288
+        },
+        "stage_strategy": {
+          "count": 151860,
+          "p50_ns": 538,
+          "p99_ns": 713,
+          "p999_ns": 1933,
+          "max_ns": 4126
+        },
+        "stage_gateway_venue": {
+          "count": 151860,
+          "p50_ns": 63361,
+          "p99_ns": 122643,
+          "p999_ns": 164012,
+          "max_ns": 1763063
+        }
+      }
+    ]
+  }
+}
