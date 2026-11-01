@@ -11,6 +11,7 @@ HP ProLiant DL380 Gen9, BIOS P89 (08/29/2024); 2 × Intel(R) Xeon(R) CPU E5-2699
 | sink (note 002) | 3 | 2026-10-31 13:05 UTC | 4ede151 | performance | C1 C1E C3 C6 POLL | on | off | yes | 2-21,46-65 |
 | risk (note 003) | 3 | 2026-10-31 17:44 UTC | ceddf71 | performance | C1 C1E C3 C6 POLL | on | off | yes | 2-21,46-65 |
 | t2t (note 005) | 3 | 2026-11-01 11:22 UTC | 60b7673 | performance | C1 C1E C3 C6 POLL | on | off | yes | 2-21,46-65 |
+| t2t_card (note 005) | 3 | 2026-11-01 14:59 UTC | 3ec0538 | performance | C1 C1E C3 C6 POLL | on | off | yes | 2-21,46-65 |
 
 Every run met note 004's bench-mode conditions (each file's `environment.bench_mode`, checked before use) and was built clean; compiler and flags are in each file's `environment.build`. Ranges are min–max over a set's runs.
 
@@ -38,20 +39,24 @@ The strategy's thread on one pinned CPU (CPU 2), given the 4,717,340 book events
 
 ## Tick to trade (note 005)
 
-From the time our sender meant to send the ITCH message that caused an order (its stamp, open loop) to the time `order_venue` read the order, for each NewOrderSingle and replace caused by a book event (note 005, D1); orders caused by an answer (the request in flight came back and the bid had moved) have no tick and are counted apart. 100 instruments, the sample day's first 50,000,000 messages at fixed paces (packets a second); CPUs: feed 2, strategy 3, engine 4, sender 5, venue 6, pipeline journal 7 and sender 8. The first 1,000 timed orders of each point discarded. Every order timed is joined from the sender's stamp, the program's trace, the gateway's journal and the venue's list, none missing; note 004's S1 held in every point. Journal C survives a process crash, A power loss (the gateway's note 004). On the card, kernel busy polling (`net.core.busy_read` and `busy_poll` 50). The measurement's own cost, p50: a clock read 33 ns, a stamp read 89–92 ns, against the timer pair alone 16 ns (two clock reads and a stamp read an order). 3 runs; ranges over the runs of each path.
+From the time our sender meant to send the ITCH message that caused an order (its stamp, open loop) to the time `order_venue` read the order, for each NewOrderSingle and replace caused by a book event (note 005, D1); orders caused by an answer (the request in flight came back and the bid had moved) have no tick and are counted apart. 100 instruments, the sample day's first 50,000,000 messages at fixed paces (packets a second); CPUs: feed 2, strategy 3, engine 4, sender 5, venue 6, pipeline journal 7 and sender 8. The first 1,000 timed orders of each point discarded. Every order timed is joined from the sender's stamp, the program's trace, the gateway's journal and the venue's list, none missing; note 004's S1 held in every point. Journal C survives a process crash, A power loss (the gateway's note 004). On the card, kernel busy polling (`net.core.busy_read` and `busy_poll` 50). The measurement's own cost, p50: a clock read 33–35 ns, a stamp read 89–92 ns, against the timer pair alone 12–16 ns (two clock reads and a stamp read an order). loopback 3 runs; card 3 runs; ranges over the runs of each path (each path a set of its own, at one commit: Conditions).
 
-| Path | Point | Orders timed | Caused by an answer | p50 | p99 | p99.9 | max | Kernel drops |
-|---|---|---|---|---|---|---|---|---|
-| loopback | A, journal C, 10k | 786,288–789,246 | 14%–15% | 20.3 µs–20.5 µs | 65.7 µs–66.5 µs | 83.6 µs–90.9 µs | 123.3 µs–128.5 µs | 0 |
-| loopback | A, journal C, 25k | 699,579–701,851 | 19% | 22.0 µs–22.2 µs | 66.4 µs–68.1 µs | 84.4 µs–86.5 µs | 119.3 µs–121.6 µs | 0 |
-| loopback | A, journal C, 50k | 589,337–591,259 | 25% | 27.5 µs | 75.3 µs–76.2 µs | 95.2 µs–96.3 µs | 137.3 µs–150.6 µs | 0 |
-| loopback | A, journal C, the open | 153,537–153,561 | 26% | 20.8 µs–20.9 µs | 55.9 µs–57.4 µs | 76.7 µs–77.5 µs | 400.6 µs–418.2 µs | 0 |
-| loopback | B, journal C, 25k | 695,189–697,776 | 19%–20% | 20.9 µs–21.2 µs | 62.6 µs–64.3 µs | 79.3 µs–82.1 µs | 119.2 µs–126.7 µs | 0 |
-| loopback | B, journal C, the open | 153,510–153,522 | 26% | 20.0 µs–20.5 µs | 54.8 µs–56.0 µs | 73.8 µs–76.1 µs | 401.2 µs–419.9 µs | 0 |
-| loopback | C, journal C, 25k | 694,206–700,184 | 19%–20% | 25.5 µs–26.4 µs | 67.0 µs–70.9 µs | 86.1 µs–89.0 µs | 128.9 µs–132.6 µs | 0 |
-| loopback | C, journal C, the open | 153,541–153,557 | 26% | 24.3 µs–25.0 µs | 57.8 µs–58.5 µs | 77.7 µs–78.5 µs | 467.1 µs–480.1 µs | 0 |
-| loopback | A, journal A, 25k | 538,902–540,934 | 27% | 92.1 µs–92.9 µs | 142.1 µs–145.6 µs | 173.7 µs–194.1 µs | 4.1–77.1 ms | 0 |
-| loopback | A, journal A, the open | 151,860–151,882 | 28% | 75.3 µs–75.7 µs | 135.2 µs–136.7 µs | 172.1 µs–180.4 µs | 1.8–2.0 ms | 0 |
+| Path | Point | Orders timed | Caused by an answer | p50 | p99 | p99.9 | max | Kernel drops | Sender late, max |
+|---|---|---|---|---|---|---|---|---|---|
+| loopback | A, journal C, 10k | 786,288–789,246 | 14%–15% | 20.3 µs–20.5 µs | 65.7 µs–66.5 µs | 83.6 µs–90.9 µs | 123.3 µs–128.5 µs | 0 | 12.2 µs–18.1 µs |
+| loopback | A, journal C, 25k | 699,579–701,851 | 19% | 22.0 µs–22.2 µs | 66.4 µs–68.1 µs | 84.4 µs–86.5 µs | 119.3 µs–121.6 µs | 0 | 3.5–17.5 µs |
+| loopback | A, journal C, 50k | 589,337–591,259 | 25% | 27.5 µs | 75.3 µs–76.2 µs | 95.2 µs–96.3 µs | 137.3 µs–150.6 µs | 0 | 10.8 µs–13.2 µs |
+| loopback | A, journal C, the open | 153,537–153,561 | 26% | 20.8 µs–20.9 µs | 55.9 µs–57.4 µs | 76.7 µs–77.5 µs | 400.6 µs–418.2 µs | 0 | 76.5 µs–82.3 µs |
+| loopback | B, journal C, 25k | 695,189–697,776 | 19%–20% | 20.9 µs–21.2 µs | 62.6 µs–64.3 µs | 79.3 µs–82.1 µs | 119.2 µs–126.7 µs | 0 | 3,312–3,449 |
+| loopback | B, journal C, the open | 153,510–153,522 | 26% | 20.0 µs–20.5 µs | 54.8 µs–56.0 µs | 73.8 µs–76.1 µs | 401.2 µs–419.9 µs | 0 | 70.6 µs–73.3 µs |
+| loopback | C, journal C, 25k | 694,206–700,184 | 19%–20% | 25.5 µs–26.4 µs | 67.0 µs–70.9 µs | 86.1 µs–89.0 µs | 128.9 µs–132.6 µs | 0 | 3,323–3,648 |
+| loopback | C, journal C, the open | 153,541–153,557 | 26% | 24.3 µs–25.0 µs | 57.8 µs–58.5 µs | 77.7 µs–78.5 µs | 467.1 µs–480.1 µs | 0 | 72.8 µs–79.5 µs |
+| loopback | A, journal A, 25k | 538,902–540,934 | 27% | 92.1 µs–92.9 µs | 142.1 µs–145.6 µs | 173.7 µs–194.1 µs | 4.1–77.1 ms | 0 | 10.4 µs–17.9 µs |
+| loopback | A, journal A, the open | 151,860–151,882 | 28% | 75.3 µs–75.7 µs | 135.2 µs–136.7 µs | 172.1 µs–180.4 µs | 1.8–2.0 ms | 0 | 76.8 µs–86.1 µs |
+| card | A, journal C, 10k | 738,954–744,869 | 17% | 47.7 µs–49.4 µs | 98.7 µs–104.4 µs | 113.7 µs–116.6 µs | 158.3 µs–171.9 µs | 0 | 11.4 µs–16.6 µs |
+| card | A, journal C, 25k | 623,096–629,219 | 23% | 53.9 µs–55.6 µs | 100.1 µs–105.6 µs | 116.2 µs–122.9 µs | 162.5 µs–192.2 µs | 0 | 3,117–3,405 |
+| card | A, journal C, 50k | 529,229–534,161 | 27%–28% | 60.4 µs–62.3 µs | 108.9 µs–111.5 µs | 127.6 µs–131.6 µs | 178.7 µs–186.4 µs | 0 | 9.4–11.5 µs |
+| card | A, journal C, the open | 153,176–153,217 | 27% | 48.9 µs–49.8 µs | 93.4 µs–98.2 µs | 104.5 µs–110.2 µs | 439.1 µs–470.9 µs | 0 | 66.6 µs–77.7 µs |
 
 Journal A at 25k (loopback): its max, 4.1–77.1 ms over the runs, is all in the gateway-and-venue stage, where the pipeline's `fdatasync` to ext4 is; its cause was not found (open item T4, parked: journal A is beside the default, not it).
 
@@ -63,3 +68,19 @@ The headline's stages: the feed (the sender's kernel, the path, the receive, seq
 | loopback | A, journal C, 25k | 9,043–9,143 | 16.7 µs–16.8 µs | 438–449 | 1,131–1,178 | 11.1 µs–11.5 µs | 55.3 µs–57.0 µs |
 | loopback | A, journal C, 50k | 9,202–9,280 | 16.8 µs–16.9 µs | 430–447 | 1,823–1,883 | 17.3 µs–17.4 µs | 64.3 µs–65.0 µs |
 | loopback | A, journal C, the open | 10.3 µs | 18.7 µs–18.8 µs | 499–511 | 639–657 | 8,019–8,053 | 42.6 µs–44.1 µs |
+| card | A, journal C, 10k | 22.0 µs–23.1 µs | 29.3 µs–31.1 µs | 472–478 | 704–743 | 23.5 µs–24.2 µs | 74.4 µs–78.9 µs |
+| card | A, journal C, 25k | 22.7 µs–23.5 µs | 30.3 µs–33.3 µs | 451–462 | 1,125–1,188 | 30.4 µs–32.1 µs | 75.0 µs–80.1 µs |
+| card | A, journal C, 50k | 22.4 µs–22.6 µs | 30.2 µs–31.0 µs | 433–464 | 1,818–1,885 | 37.1 µs–39.1 µs | 84.5 µs–86.8 µs |
+| card | A, journal C, the open | 24.5 µs–24.6 µs | 34.8 µs–35.1 µs | 496–521 | 645–670 | 21.6 µs–22.6 µs | 64.7 µs–69.9 µs |
+
+Beside them, the components' own published figures (S6), read from their repositories at the commits this one pins: the feed handler from our sender's stamp to the update published (no strategy, no gateway), and the gateway a round trip, the order handed to it to the venue's ExecutionReport back, against our gateway-and-venue stage's one way. Note 001's S3 (amended): two runs of the program agree only on their first tens of orders (note 004's day test), so points are compared as distributions, never order by order.
+
+| Component | Path | Point | Runs | p50 | p99 | p99.9 | max |
+|---|---|---|---|---|---|---|---|
+| the feed handler's packet to published update (its note 010) | loopback | 25k/s | 3 | 10.8 µs–11.1 µs | 20.3 µs–20.7 µs | 25.4 µs–25.8 µs | 5.6 ms |
+| the feed handler's packet to published update (its note 010) | loopback | the open, its own pace, recording | 3 | 11.7 µs–12.4 µs | 23.2 µs–24.3 µs | 34.7 µs–36.7 µs | 437.0 µs–467.4 µs |
+| the feed handler's packet to published update (its note 010) | card | 25k/s | 3 | 23.6 µs–23.8 µs | 33.2 µs–33.5 µs | 36.9 µs–37.3 µs | 5.7–5.8 ms |
+| the feed handler's packet to published update (its note 010) | card | the open, its own pace, recording | 3 | 25.1 µs–25.4 µs | 38.2 µs–39.2 µs | 52.4 µs–54.5 µs | 469.2 µs–504.5 µs |
+| the gateway's order to ExecutionReport, direct loop, journal C (its note 008) | loopback | 10k orders/s | 3 | 19.0 µs–19.1 µs | 23.9 µs–24.1 µs | 26.2 µs–26.3 µs | 30.0 µs–31.5 µs |
+| the gateway's order to ExecutionReport, direct loop, journal C (its note 008) | loopback | 20k orders/s | 3 | 18.7 µs–19.1 µs | 23.6 µs–24.1 µs | 25.7 µs–26.4 µs | 29.7 µs–30.7 µs |
+| the gateway's order to ExecutionReport, direct loop, journal C (its note 008) | loopback | 50k orders/s | 3 | 18.8 µs–19.2 µs | 24.1 µs–24.9 µs | 31.4 µs–32.1 µs | 35.1 µs–36.8 µs |

@@ -22,7 +22,11 @@ import sys
 import tomllib
 from pathlib import Path
 
-SETS = ("sink", "risk", "t2t")
+SETS = ("sink", "risk", "t2t", "t2t_card")
+# The JSON block each set's runs carry, where it is not the set's name; and the one path a t2t set holds
+# (each path its own set, so each set one commit: note 005).
+BLOCK_OF = {"t2t_card": "t2t"}
+PATH_OF = {"t2t": "loopback", "t2t_card": "card"}
 BLOCK = re.compile(r"(<!-- results:(?P<name>[a-z0-9-]+) -->\n)(?P<body>.*?)(<!-- /results -->)", re.S)
 MEAN = re.compile(r"\b(mean|average|avg)\b", re.I)
 
@@ -59,8 +63,11 @@ def validate(root, lf_root, name, files):
             raise ReportError(f"{name}: {f}: not a published run (refused or outside results/)")
         if not e["build"]["clean"]:
             raise ReportError(f"{name}: {f}: built from a tree with uncommitted changes")
-        if name not in d or not d.get("clock", {}).get("ok"):
-            raise ReportError(f"{name}: {f}: no {name} block, or the clock refused")
+        block = BLOCK_OF.get(name, name)
+        if block not in d or not d.get("clock", {}).get("ok"):
+            raise ReportError(f"{name}: {f}: no {block} block, or the clock refused")
+        if name in PATH_OF and d[block]["path"] != PATH_OF[name]:
+            raise ReportError(f"{name}: {f}: a {d[block]['path']} run in the {PATH_OF[name]} set")
         runs.append((f, d))
     if not runs:
         raise ReportError(f"{name}: no runs listed")
@@ -165,6 +172,11 @@ def risk_section(lf, note, runs):
 # ---------------------------------------------------------------- note 005
 
 
+def t2t_runs(sets):
+    """Both paths' runs (sets t2t and t2t_card), loopback first."""
+    return [r for n in ("t2t", "t2t_card") if n in sets for r in sets[n][1]]
+
+
 def t2t_by_path(runs):
     """The runs of each path, each path's points the same in every run."""
     paths = {}
@@ -200,11 +212,12 @@ def t2t_rows(lf, runs, only=None):
             rows.append([path, p0["name"], lf.rng([p["tick_to_trade"]["count"] for p in ps], lambda v: f"{v:,.0f}"),
                          lf.rng([100 * p["by_answer"] / p["orders"] for p in ps], lambda v: f"{v:.0f}%")]
                         + [t2t_lat(lf, [x[f] for x in tt]) for f in ("p50_ns", "p99_ns", "p999_ns", "max_ns")]
-                        + [lf.rng([p["kernel_drops"] for p in ps], lambda v: f"{v:,.0f}")])
+                        + [lf.rng([p["kernel_drops"] for p in ps], lambda v: f"{v:,.0f}"),
+                           t2t_lat(lf, [p["sender_late_max_ns"] for p in ps])])
     return rows
 
 
-T2T_HEAD = ["Path", "Point", "Orders timed", "Caused by an answer", "p50", "p99", "p99.9", "max", "Kernel drops"]
+T2T_HEAD = ["Path", "Point", "Orders timed", "Caused by an answer", "p50", "p99", "p99.9", "max", "Kernel drops", "Sender late, max"]
 
 
 def t2t_stage_rows(lf, runs):
@@ -237,7 +250,39 @@ def t2t_open_items(lf, runs):
     return out
 
 
-def t2t_section(lf, note, runs):
+def component_runs(root, repo, name):
+    """A component's published set, from its repository at the commit this one pins (build/_deps)."""
+    base = root / "build" / "_deps" / f"{repo}-src" / "results"
+    m = tomllib.loads((base / "published.toml").read_text())
+    return [json.loads((base / f).read_text())[name] for f in m[name]["runs"]]
+
+
+def components_rows(lf, root):
+    """S6: the components' own published figures, beside tick to trade."""
+    rows = []
+    e2e = component_runs(root, "itch_feed_handler", "e2e")
+    for path, theirs in (("loopback", "loopback"), ("card", "card-busy-poll")):  # the card's runs, ours too, with busy polling
+        for want in (lambda c: c["pace"] == 25_000 and not c["recording"], lambda c: c["pace"] == 0):
+            cs = [c for r in e2e if r["path"] == theirs for c in r["cases"] if want(c)]
+            if cs:
+                x = [c["packet_to_update"] for c in cs]
+                rows.append(["the feed handler's packet to published update (its note 010)", path,
+                             cs[0]["name"] + (", recording" if cs[0]["recording"] else ""), sum(r["path"] == theirs for r in e2e)]
+                            + [t2t_lat(lf, [v[f] for v in x]) for f in ("p50_ns", "p99_ns", "p999_ns", "max_ns")])
+    order = component_runs(root, "fix_order_gateway", "order")
+    for rate in (10_000, 20_000, 50_000):
+        ps = [p for r in order for p in r["points"]
+              if p["gateway"] == "ours" and p["loop"] == "direct" and p["journal"] == "C" and p["rate_per_s"] == rate]
+        if ps:
+            rows.append(["the gateway's order to ExecutionReport, direct loop, journal C (its note 008)", order[0]["path"],
+                         f"{rate // 1000}k orders/s", len(order)] + [t2t_lat(lf, [p[f] for p in ps]) for f in ("p50_ns", "p99_ns", "p999_ns", "max_ns")])
+    return rows
+
+
+COMPONENTS_HEAD = ["Component", "Path", "Point", "Runs", "p50", "p99", "p99.9", "max"]
+
+
+def t2t_section(lf, note, runs, root=None):
     t0 = runs[0][1]["t2t"]
     cost = lambda k: lf.rng([d["t2t"][k]["p50_ns"] for _, d in runs])
     return [f"## Tick to trade (note {note})", "",
@@ -250,18 +295,25 @@ def t2t_section(lf, note, runs):
             "Journal C survives a process crash, A power loss (the gateway's note 004). On the card, kernel busy polling "
             "(`net.core.busy_read` and `busy_poll` 50). The measurement's own cost, p50: a clock read "
             f"{cost('cost_clock_read')} ns, a stamp read {cost('cost_stamp_read')} ns, against the timer pair alone "
-            f"{cost('cost_timer_pair_alone')} ns (two clock reads and a stamp read an order). {len(runs)} runs; ranges over the runs "
-            "of each path.", "",
+            f"{cost('cost_timer_pair_alone')} ns (two clock reads and a stamp read an order). "
+            + "; ".join(f"{path} {len(ts)} runs" for path, ts in t2t_by_path(runs).items())
+            + "; ranges over the runs of each path (each path a set of its own, at one commit: Conditions).", "",
             lf.table(T2T_HEAD, t2t_rows(lf, runs)), "",
             *t2t_open_items(lf, runs),
             "The headline's stages: the feed (the sender's kernel, the path, the receive, sequencing, decoding, the book and the "
             "sink), the hand-off to the strategy and the strategy and risk checks, and the gateway and the venue (the ring, the "
             "session, the journal, the encode, TCP and the venue's read; the journal's time cannot split it, being the engine's "
             "pass's).", "",
-            lf.table(T2T_STAGE_HEAD, t2t_stage_rows(lf, runs)), ""]
+            lf.table(T2T_STAGE_HEAD, t2t_stage_rows(lf, runs)), "",
+            "Beside them, the components' own published figures (S6), read from their repositories at the commits this one pins: "
+            "the feed handler from our sender's stamp to the update published (no strategy, no gateway), and the gateway a round "
+            "trip, the order handed to it to the venue's ExecutionReport back, against our gateway-and-venue stage's one way. "
+            "Note 001's S3 (amended): two runs of the program agree only on their first tens of orders (note 004's day test), so "
+            "points are compared as distributions, never order by order.", "",
+            *([lf.table(COMPONENTS_HEAD, components_rows(lf, root)), ""] if root else [])]
 
 
-def results_md(lf, sets):
+def results_md(lf, sets, root=None):
     lines = ["# Results", "",
              "Generated by `python run.py report` from the runs listed in `results/published.toml`. "
              "Do not edit: `python run.py report --check` fails if this file and the JSON disagree. "
@@ -273,8 +325,8 @@ def results_md(lf, sets):
         lines += sink_section(lf, *sets["sink"])
     if "risk" in sets:
         lines += risk_section(lf, *sets["risk"])
-    if "t2t" in sets:
-        lines += t2t_section(lf, *sets["t2t"])
+    if "t2t" in sets or "t2t_card" in sets:
+        lines += t2t_section(lf, "005", t2t_runs(sets), root)
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -282,8 +334,8 @@ def readme_blocks(lf, sets):
     blocks = {"sink-summary": "The strategy's sink: not yet measured (design note 002).\n",
               "risk-summary": "Pre-trade risk: not yet measured (design note 003).\n",
               "t2t-summary": "Tick to trade: not yet measured (design note 005).\n"}
-    if "t2t" in sets:
-        runs = sets["t2t"][1]
+    if "t2t" in sets or "t2t_card" in sets:
+        runs = t2t_runs(sets)
         blocks["t2t-summary"] = (lf.table(T2T_HEAD, t2t_rows(lf, runs, lambda path, p: p["name"] == "A, journal C, 25k"))
                                  + "\n\nFrom our sender's intended send time of the ITCH message that caused an order to the venue's "
                                  "read of the order, open loop, 25,000 packets a second, arrangement A, journal C; ns, range over "
@@ -306,7 +358,7 @@ def readme_blocks(lf, sets):
 def report(root, check, lfipc=None):
     lf, lf_root = harness(root, lfipc)
     sets = load_sets(root, lf_root)
-    results = results_md(lf, sets)
+    results = results_md(lf, sets, root)
     readme_path = root / "README.md"
     readme = readme_path.read_text()
     blocks = readme_blocks(lf, sets)

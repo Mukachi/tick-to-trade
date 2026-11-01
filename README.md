@@ -13,9 +13,10 @@ Figures are generated from committed runs by `python run.py report`; every run s
 conditions in [RESULTS.md](RESULTS.md).
 
 <!-- results:t2t-summary -->
-| Path | Point | Orders timed | Caused by an answer | p50 | p99 | p99.9 | max | Kernel drops |
-|---|---|---|---|---|---|---|---|---|
-| loopback | A, journal C, 25k | 699,579–701,851 | 19% | 22.0 µs–22.2 µs | 66.4 µs–68.1 µs | 84.4 µs–86.5 µs | 119.3 µs–121.6 µs | 0 |
+| Path | Point | Orders timed | Caused by an answer | p50 | p99 | p99.9 | max | Kernel drops | Sender late, max |
+|---|---|---|---|---|---|---|---|---|---|
+| loopback | A, journal C, 25k | 699,579–701,851 | 19% | 22.0 µs–22.2 µs | 66.4 µs–68.1 µs | 84.4 µs–86.5 µs | 119.3 µs–121.6 µs | 0 | 3.5–17.5 µs |
+| card | A, journal C, 25k | 623,096–629,219 | 23% | 53.9 µs–55.6 µs | 100.1 µs–105.6 µs | 116.2 µs–122.9 µs | 162.5 µs–192.2 µs | 0 | 3,117–3,405 |
 
 From our sender's intended send time of the ITCH message that caused an order to the venue's read of the order, open loop, 25,000 packets a second, arrangement A, journal C; ns, range over runs. Every point, its stages and the method: [RESULTS.md](RESULTS.md).
 <!-- /results -->

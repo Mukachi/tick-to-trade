@@ -17,3 +17,11 @@ note = "005"
 runs = ["t2t-loopback-dev-lnx01-20261101T112218Z.json",
         "t2t-loopback-dev-lnx01-20261101T115018Z.json",
         "t2t-loopback-dev-lnx01-20261101T121817Z.json"]
+
+# Note 005: tick to trade over the card (its own set: built at 3ec0538, the
+# venue listening on the card's far side; the program as the loopback set's).
+[t2t_card]
+note = "005"
+runs = ["t2t-card-dev-lnx01-20261101T145934Z.json",
+        "t2t-card-dev-lnx01-20261101T150852Z.json",
+        "t2t-card-dev-lnx01-20261101T151811Z.json"]
